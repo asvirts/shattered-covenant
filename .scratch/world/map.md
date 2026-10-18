@@ -23,6 +23,8 @@ Produce a locked, decision-complete specification (`.scratch/world/spec.md`) and
 
 <!-- the index: one line per closed ticket, enough to judge relevance, then zoom the link for the detail the ticket holds -->
 
+- [Zone Graph Topology, Multi-Map Data Model & Border Transitions](issues/01-zone-graph-and-transitions.md): Per-Zone scrolling grids (`38×28` to `64×48`), 15+ canonical Zones across Frontier/Archive/3 Realm `[Hub ↔ Warzone Approach ↔ Vault]` branches + Sky-Map destinations, step-on `EXIT` strips with 250ms fade, persistent Wardstone states & Waygate/Realm-change mob respawns, and declarative `RealmId`/`BiomePaletteId`/`ZoneAudioProfileId` configs.
+
 ## Not yet specified
 
 - **Act II Regional Hub & Approach Zone Breakdown**: The exact local Zone graph, NPC rosters, and faction warzone triggers for *The Mythic Dawn* (*Sun-Scale Hold* & Wyvern Roosts), *The Obsidian Reign* (*Cinderhold* & Magma Foundries), *The Astral Wastes* (*Star-Bound Conclave*), and the *Contested Tri-Border Maelstrom* approach once the core Zone graph and World Phase models are settled.

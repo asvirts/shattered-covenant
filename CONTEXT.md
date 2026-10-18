@@ -35,6 +35,14 @@ _Avoid_: Element, school, realm (when referring to the magical energy or affinit
 A discrete, walkable 2D tile-grid map representing a specific location in Vaelora (a town, canyon pass, Titan Vault, or sanctuary), connected to other Zones via border exits, Titan Waygates, or Sun-Drake travel.
 _Avoid_: Overworld grid, room, level, stage
 
+**Regional Hub**:
+The primary fortified settlement Zone within each of the three superpower Realms in Act II (**Sun-Scale Hold** in The Mythic Dawn, **Cinderhold** in The Obsidian Reign, and **The Star-Bound Conclave** in The Astral Wastes), linked directly to The Grand Archive and serving as the staging base for its Realm's Warzone Approach and Titan Vault.
+_Avoid_: Blackrock Spire, Imperial Foundry, The Iron Bastion (for Cinderhold); Outpost of the Star-Bound, Mirage Sanctum (for The Star-Bound Conclave)
+
+**Warzone Approach**:
+The contested outdoor route Zone connecting a Realm's Regional Hub to its ancient Titan Vault (**Emerald Canopy Causeway** in The Mythic Dawn, **Blackrock Magma Viaduct** in The Obsidian Reign, and **Shattered Star-Dunes** in The Astral Wastes).
+_Avoid_: World map route, overworld path
+
 **Local Wardstone**:
 An ancient regional ley-line monolith within a Zone into which Kaelen can channel any unlocked Domain (`DAWN`, `OBSIDIAN`, `ASTRAL`) to dynamically transform surrounding terrain and puzzle obstacles.
 _Avoid_: Obelisk, shrine, switch
