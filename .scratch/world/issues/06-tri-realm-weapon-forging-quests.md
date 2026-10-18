@@ -3,10 +3,11 @@
 Type: grilling
 Label: wayfinder:grilling
 Status: open
+Blocked by: 03, 04
 
 ## Question
 
-How should the 5-tier weapon evolution system integrate with regional Master Forges and the signature Tri-Realm Weapon Forging sidequests across Vaelora?
+With [Titan Waygate Network & Tamed Sun-Drake Sky-Map Selector](./03-waygate-and-sun-drake-traversal.md) and [Three-Act World Phase State Machine, Story Flags & Dialogue Scripting](./04-world-phase-and-narrative-state.md) settled, how should the 5-tier weapon evolution system integrate with regional Master Forges and the signature Tri-Realm Weapon Forging sidequests across Vaelora?
 
 Specifically, we need to decide:
 1. **Regional Master Forges & Tiers 1–3**: Which regional hubs house Master Forges (e.g., Oakhaven Masons' Guild, The Grand Archive / Coalition War Camp, Cinderhold, Sun-Scale Hold, Star-Bound Conclave), and what combination of Heart-Ore and boss cores unlocks Weapon Tiers 2 and 3?

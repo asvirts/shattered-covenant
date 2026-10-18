@@ -3,10 +3,11 @@
 Type: grilling
 Label: wayfinder:grilling
 Status: open
+Blocked by: 01
 
 ## Question
 
-How should the game represent and transition across the three global World Phases (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`), quest flags, and narrative cutscenes?
+Building on [Zone Graph Topology, Multi-Map Data Model & Border Transitions](./01-zone-graph-and-transitions.md), how should the game represent and transition across the three global World Phases (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`), quest flags, and narrative cutscenes?
 
 Specifically, we need to decide:
 1. **World Phase & Story Flag Model**: What data structure tracks the active `WorldPhase`, which of the Four Great Shards have been recovered, regional faction statuses, and cutscene/dialogue completion flags?

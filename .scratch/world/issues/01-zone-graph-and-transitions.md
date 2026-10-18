@@ -2,7 +2,8 @@
 
 Type: grilling
 Label: wayfinder:grilling
-Status: open
+Status: claimed
+Blocked by: none
 
 ## Question
 

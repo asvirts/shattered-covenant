@@ -3,10 +3,11 @@
 Type: grilling
 Label: wayfinder:grilling
 Status: open
+Blocked by: 01
 
 ## Question
 
-How should Local Wardstones evolve from a single hardcoded `requiredRealm` into multi-Domain conduits that Kaelen can switch between `DAWN`, `OBSIDIAN`, and `ASTRAL` via the Heart-Shard Gauntlet?
+Building on [Zone Graph Topology, Multi-Map Data Model & Border Transitions](./01-zone-graph-and-transitions.md), how should Local Wardstones evolve from a single hardcoded `requiredRealm` into multi-Domain conduits that Kaelen can switch between `DAWN`, `OBSIDIAN`, and `ASTRAL` via the Heart-Shard Gauntlet?
 
 Specifically, we need to decide:
 1. **Domain Unlock Progression on the Field**: When and how does Kaelen's Heart-Shard Gauntlet unlock the ability to channel each Domain (`DAWN`, `OBSIDIAN`, `ASTRAL`) into Local Wardstones across Act I and Act II (versus battle Domain Shifts)?
