@@ -1,0 +1,3 @@
+# Interconnected Local Zones with Elevated Sun-Drake Map Selector
+
+Rather than building a separate zoomed-out 2D continental overworld grid for Vaelora, all exploration takes place within interconnected local tile Zones (towns, canyon passes, hubs, sanctuaries, and dungeons) linked by border exits and Titan Waygates, while Tamed Sun-Drakes earned in Act II unlock an elevated sky-map travel selector to reach high-altitude dungeons, hidden Titan sanctuaries, and The Sunken Reliquary across the central sea. This preserves the tactile tile-puzzle and field-ambush density of the `QuarryMap` engine without maintaining two separate movement, collision, and rendering scales.

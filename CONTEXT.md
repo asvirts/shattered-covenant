@@ -1,0 +1,56 @@
+# Shattered Covenant (Vaelora)
+
+A turn-based fantasy JRPG set on the continent of Vaelora, where the shattering of the Edict Pillar has plunged three neighboring superpowers into a race to claim its Four Great Shards and rewrite the magical laws of the world.
+
+## Language
+
+### World & Cosmology
+
+**Vaelora**:
+The single interconnected continent where the game takes place, divided among three neighboring superpower Realms surrounding the central crater of the shattered Edict Pillar.
+
+**Edict Pillar**:
+The colossal divine monolith carved by the ancient Titans at the center of Vaelora to balance the continent's ley-lines and govern the laws of magic prior to its shattering.
+_Avoid_: Covenant Pillar (use *The Covenant Stone* only as an in-world liturgical epithet)
+
+**Great Shard**:
+One of the four massive fragments of the shattered Edict Pillar that crashed into the four ancient, sealed Titan Vaults across Vaelora.
+_Avoid_: World Shard, Pillar Fragment
+
+**Heart-Shard**:
+The palm-sized core of the Edict Pillar that fell into Oakhaven's quarry and fused permanently to Kaelen Vance's mason gauntlet, serving as the sole key capable of unsealing Titan Vaults, re-inscribing Titan Waygates, and shifting Domains.
+_Avoid_: Core Shard
+
+**Realm**:
+One of the distinct geopolitical territories and superpower civilizations of Vaelora (*The Mythic Dawn*, *The Obsidian Reign*, *The Astral Wastes*), along with the neutral central hub (*The Grand Archive*) and border regions.
+_Avoid_: Era, timeline, dimension, zone, domain (when referring to a geopolitical territory)
+
+**Domain**:
+One of the three primal magical aspects of the Edict Pillar (`DAWN`, `OBSIDIAN`, `ASTRAL`) drawn from Vaelora's ley-lines and channeled through the Heart-Shard Gauntlet to transform field Wardstones or shift the active battlefield ley-line state.
+_Avoid_: Element, school, realm (when referring to the magical energy or affinity)
+
+### Exploration & World Mechanics
+
+**Zone**:
+A discrete, walkable 2D tile-grid map representing a specific location in Vaelora (a town, canyon pass, Titan Vault, or sanctuary), connected to other Zones via border exits, Titan Waygates, or Sun-Drake travel.
+_Avoid_: Overworld grid, room, level, stage
+
+**Local Wardstone**:
+An ancient regional ley-line monolith within a Zone into which Kaelen can channel any unlocked Domain (`DAWN`, `OBSIDIAN`, `ASTRAL`) to dynamically transform surrounding terrain and puzzle obstacles.
+_Avoid_: Obelisk, shrine, switch
+
+**Titan Waygate**:
+An ancient teleportation arch whose runes can be re-inscribed by the Heart-Shard Gauntlet to unlock fast travel between discovered Waygates, full party restoration, and free Talent respecs.
+_Avoid_: Save point, portal, teleporter
+
+**Sun-Drake**:
+A tamed sky-mount earned in The Mythic Dawn during Act II that unlocks elevated sky-map travel to reach high-altitude dungeons, hidden Titan sanctuaries, and The Sunken Reliquary across the central sea.
+_Avoid_: Airship, wyvern mount (wyverns are ridden by Sun-Scale scouts; the party's tamed mounts are Sun-Drakes)
+
+**Tri-Realm Forging**:
+The signature multi-step weapon crafting questline (unlocking Weapon Tier 4) in which a dormant weapon frame is tempered in The Obsidian Reign, infused with living amber in The Mythic Dawn, and etched with star-runes in The Astral Wastes.
+_Avoid_: Weapon synthesis, generic anvil upgrade
+
+**World Phase**:
+One of the three global narrative acts (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`) that governs available Zones, regional NPC/faction states, and the transformation of The Grand Archive into The Spire of the First Word alongside the Tri-Realm Coalition War Camp.
+_Avoid_: World state, chapter, era

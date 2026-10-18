@@ -1,0 +1,14 @@
+{
+  "name": "shattered-covenant",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shattered Covenant — Act I Vertical Slice Prototype (Oakhaven Quarry)",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}

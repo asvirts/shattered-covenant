@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shattered Covenant — Act I Vertical Slice (Oakhaven Quarry)</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app-shell" class="domain-none">
+      <!-- Top Header / Realm Frame -->
+      <header class="top-bar">
+        <div class="brand-block">
+          <span class="game-title">SHATTERED COVENANT</span>
+          <span id="zone-subtitle" class="zone-subtitle">Act I — Oakhaven Border Quarry</span>
+        </div>
+        <div id="objective-banner" class="objective-banner">
+          Objective: Attune the Dawn Wardstone east of the crater
+        </div>
+        <div class="hud-actions">
+          <div class="resource-pill" title="Quarry Heart-Ore used to reforge & evolve signature weapons">
+            <span class="ore-dot"></span>
+            <span>Heart-Ore: <strong id="ore-count">2</strong></span>
+          </div>
+          <button id="btn-open-party" class="basalt-btn" title="Open Party, Talent Trees, Glyph Tablet & Weapon Forge (Key: C or Tab)">
+            Party &amp; Talents [C]
+          </button>
+          <button id="btn-mute" class="basalt-btn icon-btn" title="Toggle Retro Synth Audio">
+            SFX: ON
+          </button>
+        </div>
+      </header>
+
+      <!-- Main 16:9 Viewport Container -->
+      <main class="stage-wrapper">
+        <div class="canvas-frame" id="canvas-frame">
+          <canvas id="game-canvas" width="640" height="360"></canvas>
+
+          <!-- Exploration Overlay -->
+          <div id="explore-hud" class="overlay-layer">
+            <div id="party-mini-strip" class="party-mini-strip"></div>
+
+            <div class="field-controls-hint">
+              <span><strong>WASD / Arrows</strong> Move</span>
+              <span><strong>F / Shift</strong> Field Ambush Swing</span>
+              <span><strong>Space / Click</strong> Interact</span>
+              <span><strong>C / Tab</strong> Talents &amp; Forge</span>
+            </div>
+
+            <button id="btn-interact-prompt" class="interact-prompt hidden"></button>
+          </div>
+
+          <!-- Battle UI Overlay -->
+          <div id="battle-hud" class="overlay-layer hidden">
+            <!-- Top CTB Timeline Bar -->
+            <div class="ctb-bar-container">
+              <div class="ctb-label">CTB TIMELINE</div>
+              <div id="ctb-track" class="ctb-track"></div>
+              <div id="domain-active-pill" class="domain-active-pill hidden"></div>
+            </div>
+
+            <!-- Ley-Line Gauge & Strike the Stone (Domain Shift) Panel -->
+            <div class="leyline-panel">
+              <div class="leyline-header">
+                <span>LEY-LINE GAUGE</span>
+                <strong id="leyline-value">50% (0 Charges)</strong>
+              </div>
+              <div class="leyline-bar-bg">
+                <div id="leyline-bar-fill" class="leyline-bar-fill" style="width: 16%"></div>
+                <div class="leyline-pip pip-1"></div>
+                <div class="leyline-pip pip-2"></div>
+              </div>
+              <div class="domain-shift-buttons">
+                <button
+                  id="btn-domain-dawn"
+                  class="domain-btn dawn"
+                  title="STRIKE THE STONE (Free Action, 1+ Charge): Floods arena with Mythic Dawn (+25% All DMG, -15% DEF, 2x Regen & Bleed)"
+                >
+                  Dawn Shift
+                </button>
+                <button
+                  id="btn-domain-obsidian"
+                  class="domain-btn obsidian"
+                  title="STRIKE THE STONE (Free Action, 1+ Charge): Floods arena with Obsidian Reign (+1 Stability Break, +20% Crit DMG, +30% Shields)"
+                >
+                  Obsidian Shift
+                </button>
+                <button
+                  id="btn-domain-astral"
+                  class="domain-btn astral"
+                  title="STRIKE THE STONE (Free Action, 1+ Charge): Floods arena with Astral Wastes (50% INS Cost, 2x Cooldown Speed, +50% Timeline Control)"
+                >
+                  Astral Shift
+                </button>
+              </div>
+            </div>
+
+            <!-- Battle Log Banner -->
+            <div id="battle-log-banner" class="battle-log-banner"></div>
+
+            <!-- Bottom Battle Command Deck & Party Status -->
+            <div class="battle-bottom-deck">
+              <div class="command-panel">
+                <div class="command-header">
+                  <span id="active-hero-name">Kaelen Vance</span>
+                  <span id="active-surge-badge" class="surge-badge hidden"></span>
+                </div>
+                <div class="target-selector-row">
+                  <span class="target-label">Target:</span>
+                  <div id="target-buttons" class="target-buttons"></div>
+                </div>
+                <div id="skill-buttons" class="skill-buttons-grid"></div>
+              </div>
+
+              <div id="battle-party-cards" class="battle-party-cards"></div>
+            </div>
+
+            <!-- Battle Victory / Defeat Modal -->
+            <div id="battle-result-modal" class="battle-result-modal hidden">
+              <h2 id="battle-result-title">VICTORY!</h2>
+              <p id="battle-result-summary"></p>
+              <button id="btn-battle-continue" class="basalt-btn primary-gold">
+                Continue [Space / Click]
+              </button>
+            </div>
+          </div>
+
+          <!-- Story Dialogue Box Overlay -->
+          <div id="dialogue-modal" class="dialogue-modal hidden">
+            <div class="portrait-box">
+              <canvas id="dialogue-portrait" width="96" height="96"></canvas>
+            </div>
+            <div class="dialogue-content">
+              <div class="dialogue-header">
+                <span id="dialogue-speaker" class="dialogue-speaker">Kaelen Vance</span>
+                <span id="dialogue-title" class="dialogue-title">The Faultline Mason</span>
+              </div>
+              <p id="dialogue-text" class="dialogue-text"></p>
+              <div class="dialogue-footer">
+                <span class="dialogue-step-indicator" id="dialogue-step-indicator">1 / 4</span>
+                <button id="btn-dialogue-next" class="basalt-btn primary-gold">
+                  Next [Space / Enter]
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Party, Talent Tree, Glyph Tablet & Weapon Reforge Modal -->
+          <div id="party-modal" class="party-modal hidden">
+            <div class="party-modal-header">
+              <div id="party-hero-tabs" class="party-hero-tabs"></div>
+              <div class="party-modal-subtabs">
+                <button class="subtab-btn active" data-tab="talents">Talent Tree (2-Spec)</button>
+                <button class="subtab-btn" data-tab="glyphs">Glyph Tablet &amp; Dual Techs</button>
+                <button class="subtab-btn" data-tab="weapons">Evolving Weapon &amp; Trinkets</button>
+              </div>
+              <button id="btn-close-party" class="basalt-btn">Close [Esc / C]</button>
+            </div>
+
+            <div class="party-modal-body">
+              <!-- Left Hero Summary Column -->
+              <aside class="hero-summary-col">
+                <div class="hero-summary-top">
+                  <canvas id="menu-portrait" width="96" height="96"></canvas>
+                  <div>
+                    <h3 id="menu-hero-name">Kaelen Vance</h3>
+                    <div id="menu-hero-class" class="menu-hero-class">Runic Mason</div>
+                    <div id="menu-hero-level" class="menu-hero-level">Lv. 1 | Talent Pts: 1</div>
+                  </div>
+                </div>
+                <div id="menu-stats-grid" class="menu-stats-grid"></div>
+                <button id="btn-respec-talents" class="basalt-btn full-width">
+                  Respec Talents (Free at Waygate)
+                </button>
+              </aside>
+
+              <!-- Right Dynamic Subtab Content -->
+              <section id="party-tab-content" class="party-tab-content"></section>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
