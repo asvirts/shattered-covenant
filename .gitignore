@@ -2,19 +2,32 @@
 node_modules/
 .pnp
 .pnp.js
+.pnp.cjs
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.yarn-integrity
 
 # Build outputs
 dist/
 dist-ssr/
 build/
 out/
+coverage/
 *.local
 
 # Cache and temporary files
 .vite/
 .turbo/
 .parcel-cache/
+.cache/
+.npm/
+.eslintcache
+.stylelintcache
+.nyc_output/
 *.tsbuildinfo
+vite.config.*.timestamp-*
 
 # Logs
 logs/
@@ -51,3 +64,6 @@ lerna-debug.log*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# .scratch/ is the issue tracker (see docs/agents/issue-tracker.md and AGENTS.md).
+# Those tickets and maps are project history, not throwaway notes, so they stay tracked.
