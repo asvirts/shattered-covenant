@@ -154,6 +154,7 @@ export const STARTER_TRINKETS: Record<HeroId, Trinket[]> = {
   ],
 };
 
+/** Creates fresh Fault-Line Slam and Bastion Decree skills for the Heart-Shard unlock. */
 function kaelenShardSkills(): Skill[] {
   return [
     {
@@ -206,6 +207,7 @@ export function grantHeartShardKit(hero: Hero): void {
   }
 }
 
+/** Creates the starting hero roster with apprentice Kaelen recruited and his allies locked. */
 export function createInitialHeroes(): Record<HeroId, Hero> {
   const kaelenBase = {
     maxHp: 118,

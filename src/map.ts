@@ -194,6 +194,7 @@ export class ZoneMap {
     }
   }
 
+  /** Builds the active zone from its rects and exits, then repaints the crater if the shard has already fallen. */
   private buildTiles(): void {
     this.tiles = [];
     for (let r = 0; r < this.rows; r++) {
@@ -222,6 +223,7 @@ export class ZoneMap {
     if (this.shardFallen) this.paintCrater();
   }
 
+  /** Marks the shard as fallen and carves the impact crater once; repeated calls have no effect. */
   public applyShardfall(): void {
     if (this.shardFallen) return;
     this.shardFallen = true;
@@ -267,6 +269,7 @@ export class ZoneMap {
     }
   }
 
+  /** Checks whether the player’s collision footprint avoids map boundaries and impassable terrain. */
   public isWalkablePixel(px: number, py: number): boolean {
     const margin = 6;
     const points = [
@@ -310,6 +313,7 @@ export class ZoneMap {
     return null;
   }
 
+  /** Returns the closest available interaction within reach, using recruitment and shardfall state. */
   public getNearestTrigger(heroes: Record<HeroId, Hero>): InteractableTrigger | null {
     const triggers: InteractableTrigger[] = [];
 
@@ -451,6 +455,7 @@ export class ZoneMap {
     return best;
   }
 
+  /** Draws the visible map, characters, and effects for the current shardfall state; returns camera offsets. */
   public render(
     ctx: CanvasRenderingContext2D,
     viewportW: number,
@@ -830,6 +835,7 @@ export class ZoneMap {
     }
   }
 
+  /** Draws Oakhaven’s well, sign, pallet, Bram, and woodpile. */
   private drawHamletProps(ctx: CanvasRenderingContext2D): void {
     const wellX = 20.5 * TILE_SIZE;
     const wellY = 14.5 * TILE_SIZE;
