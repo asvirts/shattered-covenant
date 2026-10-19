@@ -589,7 +589,12 @@ function getEnemyFrameCanvas(
   return canvas;
 }
 
-/** Draws a hero’s animated sprite with facing, weapon appearance, and Heart-Shard presentation. */
+/**
+ * Draws a hero’s animated sprite with facing, weapon appearance, and Heart-Shard presentation.
+ * x and y are the ground anchor in canvas pixels before animation offsets;
+ * time is an animation timestamp in milliseconds. The sprite is drawn at its
+ * native size; _scale is ignored.
+ */
 export function drawHeroSprite(
   ctx: CanvasRenderingContext2D,
   hero: Hero,
@@ -789,7 +794,12 @@ export function drawBattleVfx(
 // SEA OF STARS STYLE 48x48 PIXEL BUST PORTRAITS (SCALED 2X TO 96x96)
 // ---------------------------------------------------------------------------
 
-/** Draws a cached animated bust; Kaelen’s variant selects his humble, shard, or heroic appearance. */
+/**
+ * Draws a cached animated bust; Kaelen’s variant selects his humble, shard, or heroic appearance.
+ * Clears the canvas and draws a 96 by 96 pixel portrait without resizing the canvas.
+ * time is an animation timestamp in milliseconds; variant affects only Kaelen.
+ * Leaves the canvas unchanged if a 2D context is unavailable.
+ */
 export function drawPortrait(
   canvas: HTMLCanvasElement,
   portraitId: HeroId | 'orin' | 'vane' | 'stone',

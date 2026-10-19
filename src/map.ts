@@ -223,13 +223,17 @@ export class ZoneMap {
     if (this.shardFallen) this.paintCrater();
   }
 
-  /** Marks the shard as fallen and carves the impact crater once; repeated calls have no effect. */
+  /**
+   * Marks the shard as fallen and paints its crater if the quarry is active.
+   * Later quarry loads repaint the crater; repeated calls have no effect.
+   */
   public applyShardfall(): void {
     if (this.shardFallen) return;
     this.shardFallen = true;
     this.paintCrater();
   }
 
+  /** Paints the impact crater into the active quarry's tiles; does nothing in other zones. */
   private paintCrater(): void {
     if (this.definition.id !== 'cratered_quarry') return;
     const cells: [number, number][] = [
@@ -313,7 +317,11 @@ export class ZoneMap {
     return null;
   }
 
-  /** Returns the closest available interaction within reach, using recruitment and shardfall state. */
+  /**
+   * Returns the closest interaction less than 38 world pixels from the player,
+   * or null if none is in reach. Wardstones with unmet recruitment requirements
+   * remain eligible, with prompts explaining the requirement.
+   */
   public getNearestTrigger(heroes: Record<HeroId, Hero>): InteractableTrigger | null {
     const triggers: InteractableTrigger[] = [];
 
@@ -455,7 +463,12 @@ export class ZoneMap {
     return best;
   }
 
-  /** Draws the visible map, characters, and effects for the current shardfall state; returns camera offsets. */
+  /**
+   * Draws the visible map, characters, and effects for the current shardfall state; returns camera offsets.
+   * Viewport dimensions and camera offsets are in pixels; time is an animation
+   * timestamp in milliseconds. Subtract the offsets from world coordinates to
+   * obtain viewport coordinates.
+   */
   public render(
     ctx: CanvasRenderingContext2D,
     viewportW: number,
@@ -695,6 +708,11 @@ export class ZoneMap {
     ctx.restore();
   }
 
+  /**
+   * Draws quarry landmarks, unrecruited allies, and undefeated field enemies,
+   * showing Orin alive or petrified according to shardfall state.
+   * time is an animation timestamp in milliseconds.
+   */
   private drawQuarryProps(
     ctx: CanvasRenderingContext2D,
     heroes: Record<HeroId, Hero>,

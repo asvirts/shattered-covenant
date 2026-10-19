@@ -633,7 +633,12 @@ export class BattleEngine {
     }, 480);
   }
 
-  /** Reduces enemy Stability and applies shatter rewards, including shielding an equipped, living Kaelen. */
+  /**
+   * Reduces enemy Stability by brkAmt pips; ignores nonpositive amounts and
+   * enemies already shattered or at zero Stability. Reaching zero interrupts
+   * channeling, delays the enemy, and grants Ley-Line Gauge. A living Kaelen
+   * gains 25 Shield HP only if he has Master Orin's Plumb-Line equipped.
+   */
   private damageStability(enemy: Enemy, brkAmt: number, x: number, y: number): void {
     if (enemy.shattered || brkAmt <= 0 || enemy.stability <= 0) return;
 

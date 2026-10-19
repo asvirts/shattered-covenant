@@ -195,7 +195,12 @@ function kaelenShardSkills(): Skill[] {
   ];
 }
 
-/** The shard is a key. It does not raise stats, gear, or weapon tier. */
+/**
+ * Updates the supplied hero in place with Kaelen's shard presentation, epithet,
+ * class name, and missing Fault-Line Slam and Bastion Decree skills.
+ * Existing skills with matching IDs are preserved. Stats, gear, and weapon tier
+ * are unchanged.
+ */
 export function grantHeartShardKit(hero: Hero): void {
   hero.presentation = 'SHARD';
   hero.epithet = 'The Faultline Mason';

@@ -473,7 +473,11 @@ class ShatteredCovenantGame {
     return 'humble';
   }
 
-  /** Applies the current dialogue line’s presentation changes and renders its portrait and text. */
+  /**
+   * Applies the current dialogue line’s presentation changes and renders its portrait and text.
+   * A SHARD look also applies shardfall to the map and grants Kaelen's shard skills,
+   * regardless of the line's speaker. A HUMBLE look cannot undo shard progression.
+   */
   private renderCurrentDialogueLine(): void {
     if (!this.activeDialogue) return;
     const line = this.activeDialogue[this.dialogueIndex];
@@ -497,7 +501,7 @@ class ShatteredCovenantGame {
     document.getElementById('dialogue-step-indicator')!.textContent = `${this.dialogueIndex + 1} / ${this.activeDialogue.length}`;
   }
 
-  /** Advances the dialogue or closes it, refreshes the HUD, and invokes its completion callback. */
+  /** Advances the dialogue; on its final line, closes it, refreshes the HUD, and invokes its completion callback. */
   private advanceDialogue(): void {
     if (!this.activeDialogue) return;
     sound.playMenuTick();
@@ -1165,7 +1169,11 @@ class ShatteredCovenantGame {
     this.ctx.fillRect(0, 0, 640, 360);
   }
 
-  /** Updates exploration movement and encounters, triggering shardfall dialogue on quarry arrival. */
+  /**
+   * Updates exploration movement and encounters, triggering shardfall dialogue on quarry arrival.
+   * dt is elapsed time in seconds. Does nothing during dialogue, party menus,
+   * battle, or zone transitions.
+   */
   private updateExploration(dt: number): void {
     if (this.activeDialogue || this.partyMenuOpen || this.battle.active || this.zoneTransition) return;
 
