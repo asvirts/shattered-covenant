@@ -33,6 +33,9 @@ class ShatteredCovenantGame {
 
   // Active encounter field enemy reference
   private activeFieldEnemyId: string | null = null;
+  // Command buttons stay in the DOM until this changes. Rebuilding them every
+  // frame removes the element between mousedown and mouseup, so the click never lands.
+  private commandPanelSignature = '';
 
   constructor() {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -464,6 +467,7 @@ class ShatteredCovenantGame {
     document.getElementById('battle-hud')!.classList.remove('hidden');
     document.getElementById('battle-result-modal')!.classList.add('hidden');
 
+    this.commandPanelSignature = '';
     this.battle.startBattle(partyList, fe.encounterIds, ambush, Boolean(fe.isBoss));
     this.syncDomainShellTheme();
     this.renderBattleHUD();
@@ -492,6 +496,7 @@ class ShatteredCovenantGame {
 
     this.battle.active = false;
     this.battle.activeDomain = 'NONE';
+    this.commandPanelSignature = '';
     this.syncDomainShellTheme();
 
     document.getElementById('battle-hud')!.classList.add('hidden');
@@ -569,50 +574,28 @@ class ShatteredCovenantGame {
     });
   }
 
-  private renderBattleHUD(): void {
-    if (!this.battle.active) return;
+  private commandPanelKey(activeHero: Hero | null): string {
+    const skills = activeHero ? this.battle.getAvailableSkillsForHero(activeHero) : [];
+    const skillState = skills
+      .map((sk) => `${sk.id}:${sk.currentCooldown ?? 0}:${this.battle.getEffectiveInsCost(sk)}`)
+      .join(',');
+    return [
+      this.battle.waitingForPlayer ? '1' : '0',
+      this.battle.currentUnitId ?? '',
+      String(this.battle.selectedTargetIndex),
+      activeHero ? `${activeHero.id}:${activeHero.stats.ins}` : '',
+      skillState,
+      this.battle.activeDomain,
+      this.battle.currentSurgeBonus,
+      this.battle.victoryState,
+    ].join('|');
+  }
 
-    // 1. CTB Timeline Track
-    const track = document.getElementById('ctb-track')!;
-    track.innerHTML = '';
-    const preview = this.battle.getTimelinePreview(7);
-    preview.forEach((slot, idx) => {
-      const div = document.createElement('div');
-      div.className = `ctb-slot ${slot.isHero ? 'hero' : 'enemy'} ${idx === 0 ? 'active-turn' : ''}`;
-      let surgeLabel = '';
-      if (slot.surgeBonus === 'DMG_BOOST') surgeLabel = '<span class="surge-pip" title="Ley-Line Surge: +15% Damage on this turn">+15% DMG</span>';
-      if (slot.surgeBonus === 'ZERO_MANA') surgeLabel = '<span class="surge-pip" title="Ley-Line Surge: 0 INS Cost on this turn">0 INS</span>';
-      if (slot.surgeBonus === 'LEY_SURGE') surgeLabel = '<span class="surge-pip" title="Ley-Line Surge: +25% Ley-Line Gauge">+25% GAUGE</span>';
+  private renderCommandPanel(activeHero: Hero | null): void {
+    const key = this.commandPanelKey(activeHero);
+    if (key === this.commandPanelSignature) return;
+    this.commandPanelSignature = key;
 
-      div.innerHTML = `<span>${idx + 1}. ${slot.name}${slot.shattered ? ' (SHATTERED)' : ''}</span>${surgeLabel}`;
-      track.appendChild(div);
-    });
-
-    // Active Domain Pill
-    const domPill = document.getElementById('domain-active-pill')!;
-    if (this.battle.activeDomain !== 'NONE') {
-      domPill.classList.remove('hidden');
-      domPill.textContent = `${this.battle.activeDomain} DOMAIN (${this.battle.domainTurnsRemaining}t)`;
-    } else {
-      domPill.classList.add('hidden');
-    }
-
-    // 2. Ley-Line Gauge & Domain Buttons
-    const charges = Math.floor(this.battle.leyLineGauge / 100);
-    document.getElementById('leyline-value')!.textContent = `${this.battle.leyLineGauge}% (${charges} Charge${charges === 1 ? '' : 's'})`;
-    document.getElementById('leyline-bar-fill')!.style.width = `${Math.min(100, (this.battle.leyLineGauge / 300) * 100)}%`;
-
-    const canShift = this.battle.waitingForPlayer && this.battle.leyLineGauge >= 100;
-    (document.getElementById('btn-domain-dawn') as HTMLButtonElement).disabled = !canShift;
-    (document.getElementById('btn-domain-obsidian') as HTMLButtonElement).disabled = !canShift;
-    (document.getElementById('btn-domain-astral') as HTMLButtonElement).disabled = !canShift;
-
-    // 3. Battle Log Banner
-    document.getElementById('battle-log-banner')!.textContent =
-      this.battle.battleLog[0] || 'Awaiting orders...';
-
-    // 4. Active Hero Commands & Targets
-    const activeHero = this.battle.getActiveHero();
     const heroNameEl = document.getElementById('active-hero-name')!;
     const surgeBadge = document.getElementById('active-surge-badge')!;
     const targetBtns = document.getElementById('target-buttons')!;
@@ -672,6 +655,53 @@ class ShatteredCovenantGame {
         this.battle.victoryState !== 'NONE' ? 'Battle Complete' : 'Enemy Turn in Progress...';
       surgeBadge.classList.add('hidden');
     }
+  }
+
+  private renderBattleHUD(): void {
+    if (!this.battle.active) return;
+
+    // 1. CTB Timeline Track
+    const track = document.getElementById('ctb-track')!;
+    track.innerHTML = '';
+    const preview = this.battle.getTimelinePreview(7);
+    preview.forEach((slot, idx) => {
+      const div = document.createElement('div');
+      div.className = `ctb-slot ${slot.isHero ? 'hero' : 'enemy'} ${idx === 0 ? 'active-turn' : ''}`;
+      let surgeLabel = '';
+      if (slot.surgeBonus === 'DMG_BOOST') surgeLabel = '<span class="surge-pip" title="Ley-Line Surge: +15% Damage on this turn">+15% DMG</span>';
+      if (slot.surgeBonus === 'ZERO_MANA') surgeLabel = '<span class="surge-pip" title="Ley-Line Surge: 0 INS Cost on this turn">0 INS</span>';
+      if (slot.surgeBonus === 'LEY_SURGE') surgeLabel = '<span class="surge-pip" title="Ley-Line Surge: +25% Ley-Line Gauge">+25% GAUGE</span>';
+
+      div.innerHTML = `<span>${idx + 1}. ${slot.name}${slot.shattered ? ' (SHATTERED)' : ''}</span>${surgeLabel}`;
+      track.appendChild(div);
+    });
+
+    // Active Domain Pill
+    const domPill = document.getElementById('domain-active-pill')!;
+    if (this.battle.activeDomain !== 'NONE') {
+      domPill.classList.remove('hidden');
+      domPill.textContent = `${this.battle.activeDomain} DOMAIN (${this.battle.domainTurnsRemaining}t)`;
+    } else {
+      domPill.classList.add('hidden');
+    }
+
+    // 2. Ley-Line Gauge & Domain Buttons
+    const charges = Math.floor(this.battle.leyLineGauge / 100);
+    document.getElementById('leyline-value')!.textContent = `${this.battle.leyLineGauge}% (${charges} Charge${charges === 1 ? '' : 's'})`;
+    document.getElementById('leyline-bar-fill')!.style.width = `${Math.min(100, (this.battle.leyLineGauge / 300) * 100)}%`;
+
+    const canShift = this.battle.waitingForPlayer && this.battle.leyLineGauge >= 100;
+    (document.getElementById('btn-domain-dawn') as HTMLButtonElement).disabled = !canShift;
+    (document.getElementById('btn-domain-obsidian') as HTMLButtonElement).disabled = !canShift;
+    (document.getElementById('btn-domain-astral') as HTMLButtonElement).disabled = !canShift;
+
+    // 3. Battle Log Banner
+    document.getElementById('battle-log-banner')!.textContent =
+      this.battle.battleLog[0] || 'Awaiting orders...';
+
+    // 4. Active Hero Commands & Targets
+    const activeHero = this.battle.getActiveHero();
+    this.renderCommandPanel(activeHero);
 
     // 5. Party Status Cards
     const partyCards = document.getElementById('battle-party-cards')!;
