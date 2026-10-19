@@ -1,5 +1,31 @@
 export type DomainType = 'NONE' | 'DAWN' | 'OBSIDIAN' | 'ASTRAL';
 
+export type RealmId =
+  | 'FRONTIER'
+  | 'GRAND_ARCHIVE'
+  | 'MYTHIC_DAWN'
+  | 'OBSIDIAN_REIGN'
+  | 'ASTRAL_WASTES'
+  | 'TRI_BORDER_MAELSTROM';
+
+export type BiomePaletteId = 'CRATER_QUARRY' | 'OAKHAVEN' | 'KINGSROAD_PASS' | 'GRAND_ARCHIVE';
+
+export type ZoneAudioProfileId = 'CRATER_QUARRY' | 'OAKHAVEN' | 'KINGSROAD_PASS' | 'GRAND_ARCHIVE';
+
+export type ZoneId = 'cratered_quarry' | 'oakhaven_town' | 'kingsroad_pass' | 'grand_archive';
+
+export type TileType =
+  | 'WALL'
+  | 'FLOOR'
+  | 'CHASM'
+  | 'LAVA'
+  | 'VINE_BRIDGE'
+  | 'BASALT_BRIDGE'
+  | 'ASTRAL_BRIDGE'
+  | 'STAIRS'
+  | 'CRATER'
+  | 'EXIT';
+
 export type HeroId = 'kaelen' | 'sura' | 'vesper' | 'cassian';
 
 export interface Stats {
@@ -205,4 +231,15 @@ export interface Wardstone {
   requiredRealm: 'DAWN' | 'OBSIDIAN' | 'ASTRAL';
   attunedBy: 'NONE' | 'DAWN' | 'OBSIDIAN' | 'ASTRAL';
   description: string;
+}
+
+export interface FieldEnemySpawn {
+  id: string;
+  name: string;
+  homeTileX: number;
+  homeTileY: number;
+  patrolRadius: number;
+  dir: FieldEnemy['dir'];
+  encounterIds: string[];
+  isBoss?: boolean;
 }

@@ -1,21 +1,19 @@
-import { FieldEnemy, Hero, HeroId, Wardstone } from './types';
+import { FieldEnemy, Hero, HeroId, TileType, Wardstone } from './types';
 import { createEnemyFromTemplate } from './data';
 import { getCachedPixelSprite } from './pixel-art';
 import { drawEnemySprite, drawHeroSprite, drawPointLight } from './sprites';
+import {
+  BIOME_PALETTES,
+  BiomePalette,
+  Edge,
+  QUARRY_CHEST_ID,
+  WorldMemory,
+  ZoneDefinition,
+  ZoneExit,
+} from './zones';
 
-export type TileType =
-  | 'WALL'
-  | 'FLOOR'
-  | 'CHASM'
-  | 'LAVA'
-  | 'VINE_BRIDGE'
-  | 'BASALT_BRIDGE'
-  | 'ASTRAL_BRIDGE'
-  | 'STAIRS'
-  | 'CRATER';
+export type { TileType } from './types';
 
-export const MAP_COLS = 38;
-export const MAP_ROWS = 28;
 export const TILE_SIZE = 24;
 
 export interface InteractableTrigger {
@@ -70,175 +68,162 @@ const CHEST_ROWS = [
   '.dddddddddddd.',
 ];
 
-export class QuarryMap {
+export class ZoneMap {
+  public definition: ZoneDefinition;
+  public cols: number;
+  public rows: number;
   public tiles: TileType[][] = [];
-  public playerX = 9 * TILE_SIZE;
-  public playerY = 22 * TILE_SIZE;
+  public playerX = 0;
+  public playerY = 0;
   public playerFacing: 'LEFT' | 'RIGHT' = 'RIGHT';
   public isPlayerMoving = false;
   public swingTimer = 0;
   public dustParticles: { x: number; y: number; timer: number }[] = [];
 
-  public wardstones: Wardstone[] = [
-    {
-      id: 'ws_dawn',
-      name: 'Dawn Wardstone',
-      tileX: 13,
-      tileY: 21,
-      requiredRealm: 'DAWN',
-      attunedBy: 'NONE',
-      description:
-        'Channel Mythic Dawn energy to grow a living Sun-Vine bridge across the eastern chasm.',
-    },
-    {
-      id: 'ws_obsidian',
-      name: 'Obsidian Wardstone',
-      tileX: 16,
-      tileY: 14,
-      requiredRealm: 'OBSIDIAN',
-      attunedBy: 'NONE',
-      description:
-        'Channel Obsidian Reign energy to cool the magma river into a solid blackrock causeway.',
-    },
-    {
-      id: 'ws_astral',
-      name: 'Astral Wardstone',
-      tileX: 25,
-      tileY: 8,
-      requiredRealm: 'ASTRAL',
-      attunedBy: 'NONE',
-      description:
-        'Channel Astral Wastes energy to levitate shattered stones across the eastern void.',
-    },
-  ];
-
+  public wardstones: Wardstone[] = [];
   public relicChestOpened = false;
-
-  public fieldEnemies: FieldEnemy[] = [
-    {
-      id: 'fe_kobold_1',
-      name: 'Shard-Bitten Kobold',
-      x: 21 * TILE_SIZE,
-      y: 23 * TILE_SIZE,
-      homeX: 21 * TILE_SIZE,
-      homeY: 23 * TILE_SIZE,
-      patrolRadius: 36,
-      dir: 'LEFT',
-      encounterIds: ['kobold_scavenger', 'kobold_scavenger'],
-      defeated: false,
-      stunTimer: 0,
-    },
-    {
-      id: 'fe_hound_1',
-      name: 'Obsidian Recon Pack',
-      x: 24 * TILE_SIZE,
-      y: 15 * TILE_SIZE,
-      homeX: 24 * TILE_SIZE,
-      homeY: 15 * TILE_SIZE,
-      patrolRadius: 42,
-      dir: 'RIGHT',
-      encounterIds: ['obsidian_hound', 'kobold_scavenger'],
-      defeated: false,
-      stunTimer: 0,
-    },
-    {
-      id: 'fe_golem_1',
-      name: 'Fractured Ward-Golem',
-      x: 21 * TILE_SIZE,
-      y: 8 * TILE_SIZE,
-      homeX: 21 * TILE_SIZE,
-      homeY: 8 * TILE_SIZE,
-      patrolRadius: 30,
-      dir: 'LEFT',
-      encounterIds: ['ward_golem', 'obsidian_hound'],
-      defeated: false,
-      stunTimer: 0,
-    },
-    {
-      id: 'fe_boss_vane',
-      name: 'Inquisitor Vane & Siege-Golem',
-      x: 19 * TILE_SIZE,
-      y: 3.5 * TILE_SIZE,
-      homeX: 19 * TILE_SIZE,
-      homeY: 3.5 * TILE_SIZE,
-      patrolRadius: 0,
-      dir: 'DOWN',
-      encounterIds: ['inquisitor_vane', 'siege_golem'],
-      isBoss: true,
-      defeated: false,
-      stunTimer: 0,
-    },
-  ];
+  public fieldEnemies: FieldEnemy[] = [];
 
   private fieldEnemySprites = new Map<string, ReturnType<typeof createEnemyFromTemplate>>();
+  private palette: BiomePalette;
 
-  constructor() {
+  constructor(definition: ZoneDefinition, world: WorldMemory) {
+    this.definition = definition;
+    this.cols = definition.cols;
+    this.rows = definition.rows;
+    this.palette = BIOME_PALETTES[definition.biomePalette];
+    this.load(definition, world, { start: true });
+  }
+
+  public load(
+    definition: ZoneDefinition,
+    world: WorldMemory,
+    entry: { start: true } | { exitId: string }
+  ): void {
+    this.definition = definition;
+    this.cols = definition.cols;
+    this.rows = definition.rows;
+    this.palette = BIOME_PALETTES[definition.biomePalette];
+    this.dustParticles = [];
+    this.swingTimer = 0;
+    this.isPlayerMoving = false;
     this.buildTiles();
+    this.wardstones = definition.wardstones.map((ws) => ({
+      ...ws,
+      attunedBy: world.wardstoneAttunement[ws.id] ?? 'NONE',
+    }));
+    for (const ws of this.wardstones) {
+      if (ws.attunedBy !== 'NONE') this.paintWardstoneBridge(ws.id);
+    }
+    this.relicChestOpened = definition.kind === 'QUARRY' && world.openedChestIds.has(QUARRY_CHEST_ID);
+    this.fieldEnemies = definition.fieldEnemies.map((spawn) => {
+      const x = spawn.homeTileX * TILE_SIZE;
+      const y = spawn.homeTileY * TILE_SIZE;
+      const defeated = spawn.isBoss
+        ? world.defeatedBossIds.has(spawn.id)
+        : world.defeatedFieldEnemyIds.has(spawn.id);
+      return {
+        id: spawn.id,
+        name: spawn.name,
+        x,
+        y,
+        homeX: x,
+        homeY: y,
+        patrolRadius: spawn.patrolRadius,
+        dir: spawn.dir,
+        encounterIds: [...spawn.encounterIds],
+        isBoss: spawn.isBoss,
+        defeated,
+        stunTimer: 0,
+      };
+    });
+    this.fieldEnemySprites = new Map();
     for (const fe of this.fieldEnemies) {
       this.fieldEnemySprites.set(fe.id, createEnemyFromTemplate(fe.encounterIds[0]));
+    }
+    if ('exitId' in entry) this.placeAtExit(entry.exitId);
+    else this.placeAtStart();
+  }
+
+  public refreshFieldEnemyDefeat(world: WorldMemory): void {
+    for (const fe of this.fieldEnemies) {
+      const defeated = fe.isBoss
+        ? world.defeatedBossIds.has(fe.id)
+        : world.defeatedFieldEnemyIds.has(fe.id);
+      fe.defeated = defeated;
+      if (!defeated) {
+        fe.x = fe.homeX;
+        fe.y = fe.homeY;
+      }
+    }
+  }
+
+  private placeAtStart(): void {
+    const start = this.definition.start;
+    this.playerX = start.tileX * TILE_SIZE;
+    this.playerY = start.tileY * TILE_SIZE;
+    this.playerFacing = start.facing;
+  }
+
+  private placeAtExit(exitId: string): void {
+    const exit = this.definition.exits.find((candidate) => candidate.id === exitId);
+    if (!exit) {
+      this.placeAtStart();
+      return;
+    }
+    const mid = (exit.cross + exit.width / 2) * TILE_SIZE;
+    if (exit.edge === 'NORTH') {
+      this.playerX = mid;
+      this.playerY = TILE_SIZE + 1.5 * TILE_SIZE;
+    } else if (exit.edge === 'SOUTH') {
+      this.playerX = mid;
+      this.playerY = (this.rows - 1) * TILE_SIZE - 1.5 * TILE_SIZE;
+    } else if (exit.edge === 'WEST') {
+      this.playerX = TILE_SIZE + 1.5 * TILE_SIZE;
+      this.playerY = mid;
+      this.playerFacing = 'RIGHT';
+    } else {
+      this.playerX = (this.cols - 1) * TILE_SIZE - 1.5 * TILE_SIZE;
+      this.playerY = mid;
+      this.playerFacing = 'LEFT';
     }
   }
 
   private buildTiles(): void {
-    for (let r = 0; r < MAP_ROWS; r++) {
+    this.tiles = [];
+    for (let r = 0; r < this.rows; r++) {
       this.tiles[r] = [];
-      for (let c = 0; c < MAP_COLS; c++) {
+      for (let c = 0; c < this.cols; c++) {
         this.tiles[r][c] = 'WALL';
       }
     }
-
-    const carveRect = (
-      c1: number,
-      r1: number,
-      c2: number,
-      r2: number,
-      type: TileType = 'FLOOR'
-    ) => {
-      for (let r = r1; r <= r2; r++) {
-        for (let c = c1; c <= c2; c++) {
-          if (r >= 0 && r < MAP_ROWS && c >= 0 && c < MAP_COLS) {
-            this.tiles[r][c] = type;
+    for (const rect of this.definition.rects) {
+      for (let r = rect.r1; r <= rect.r2; r++) {
+        for (let c = rect.c1; c <= rect.c2; c++) {
+          if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
+            this.tiles[r][c] = rect.type;
           }
         }
       }
-    };
-
-    // 1. South-West Quarry Floor (Start Area: Heart-Shard Crater & Master Orin)
-    carveRect(4, 19, 13, 24, 'FLOOR');
-    carveRect(6, 20, 7, 21, 'CRATER');
-
-    // Eastern Chasm between Start Area and Sura's Sky-Skiff
-    carveRect(14, 19, 17, 24, 'CHASM');
-
-    // 2. South-East Terrace (Sura's Sky-Skiff Crash Site)
-    carveRect(18, 19, 29, 24, 'FLOOR');
-
-    // Ramp going north from South-East Terrace to Central Magma Terrace
-    carveRect(25, 16, 27, 18, 'STAIRS');
-
-    // 3. Central Magma Terrace (Cassian & Obsidian Wardstone)
-    carveRect(13, 13, 29, 16, 'FLOOR');
-
-    // Magma River blocking the northern ascent
-    carveRect(11, 11, 29, 12, 'LAVA');
-
-    // 4. Upper Sanctum (Vesper, Titan Waygate, Master Anvil, Astral Wardstone)
-    carveRect(9, 6, 25, 10, 'FLOOR');
-
-    // Astral Void Chasm to the East Relic Island
-    carveRect(26, 6, 29, 10, 'CHASM');
-    carveRect(30, 7, 33, 9, 'FLOOR');
-
-    // 5. North Crater Summit (Boss Arena: Inquisitor Vane & Siege-Golem)
-    carveRect(18, 5, 20, 6, 'STAIRS');
-    carveRect(15, 2, 23, 5, 'FLOOR');
+    }
+    for (const exit of this.definition.exits) {
+      for (let i = 0; i < exit.width; i++) {
+        if (exit.edge === 'NORTH') this.tiles[0][exit.cross + i] = 'EXIT';
+        else if (exit.edge === 'SOUTH') this.tiles[this.rows - 1][exit.cross + i] = 'EXIT';
+        else if (exit.edge === 'WEST') this.tiles[exit.cross + i][0] = 'EXIT';
+        else this.tiles[exit.cross + i][this.cols - 1] = 'EXIT';
+      }
+    }
   }
 
   public attuneWardstone(id: string): void {
     const ws = this.wardstones.find((w) => w.id === id);
     if (!ws) return;
     ws.attunedBy = ws.requiredRealm;
+    this.paintWardstoneBridge(id);
+  }
 
+  private paintWardstoneBridge(id: string): void {
     if (id === 'ws_dawn') {
       for (let c = 14; c <= 17; c++) {
         this.tiles[21][c] = 'VINE_BRIDGE';
@@ -268,16 +253,41 @@ export class QuarryMap {
     for (const [x, y] of points) {
       const c = Math.floor(x / TILE_SIZE);
       const r = Math.floor(y / TILE_SIZE);
-      if (r < 0 || r >= MAP_ROWS || c < 0 || c >= MAP_COLS) return false;
+      if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return false;
       const t = this.tiles[r][c];
-      if (t === 'WALL' || t === 'CHASM' || t === 'LAVA') {
-        return false;
-      }
+      if (t === 'WALL' || t === 'CHASM' || t === 'LAVA') return false;
     }
     return true;
   }
 
+  public exitUnderPlayer(): ZoneExit | null {
+    const c = Math.floor(this.playerX / TILE_SIZE);
+    const r = Math.floor(this.playerY / TILE_SIZE);
+    if (this.tiles[r]?.[c] !== 'EXIT') return null;
+    return (
+      this.definition.exits.find((exit) => this.exitContains(exit, c, r)) ?? null
+    );
+  }
+
+  private exitContains(exit: ZoneExit, c: number, r: number): boolean {
+    if (exit.edge === 'NORTH') return r === 0 && c >= exit.cross && c < exit.cross + exit.width;
+    if (exit.edge === 'SOUTH') {
+      return r === this.rows - 1 && c >= exit.cross && c < exit.cross + exit.width;
+    }
+    if (exit.edge === 'WEST') return c === 0 && r >= exit.cross && r < exit.cross + exit.width;
+    return c === this.cols - 1 && r >= exit.cross && r < exit.cross + exit.width;
+  }
+
+  private edgeAt(c: number, r: number): Edge | null {
+    for (const exit of this.definition.exits) {
+      if (this.exitContains(exit, c, r)) return exit.edge;
+    }
+    return null;
+  }
+
   public getNearestTrigger(heroes: Record<HeroId, Hero>): InteractableTrigger | null {
+    if (this.definition.kind !== 'QUARRY') return null;
+
     const triggers: InteractableTrigger[] = [
       {
         id: 'orin',
@@ -392,23 +402,19 @@ export class QuarryMap {
     heroes: Record<HeroId, Hero>,
     time: number
   ): { camX: number; camY: number } {
-    const camX = Math.max(
-      0,
-      Math.min(MAP_COLS * TILE_SIZE - viewportW, Math.round(this.playerX - viewportW / 2))
-    );
-    const camY = Math.max(
-      0,
-      Math.min(MAP_ROWS * TILE_SIZE - viewportH, Math.round(this.playerY - viewportH / 2))
-    );
+    const mapW = this.cols * TILE_SIZE;
+    const mapH = this.rows * TILE_SIZE;
+    const camX = Math.max(0, Math.min(mapW - viewportW, Math.round(this.playerX - viewportW / 2)));
+    const camY = Math.max(0, Math.min(mapH - viewportH, Math.round(this.playerY - viewportH / 2)));
+    const palette = this.palette;
 
     ctx.save();
     ctx.translate(-camX, -camY);
 
-    // 1. Draw Textured Hi-Bit Quarry Tiles
     const startCol = Math.max(0, Math.floor(camX / TILE_SIZE) - 1);
-    const endCol = Math.min(MAP_COLS - 1, Math.ceil((camX + viewportW) / TILE_SIZE) + 1);
+    const endCol = Math.min(this.cols - 1, Math.ceil((camX + viewportW) / TILE_SIZE) + 1);
     const startRow = Math.max(0, Math.floor(camY / TILE_SIZE) - 1);
-    const endRow = Math.min(MAP_ROWS - 1, Math.ceil((camY + viewportH) / TILE_SIZE) + 1);
+    const endRow = Math.min(this.rows - 1, Math.ceil((camY + viewportH) / TILE_SIZE) + 1);
 
     for (let r = startRow; r <= endRow; r++) {
       for (let c = startCol; c <= endCol; c++) {
@@ -417,57 +423,49 @@ export class QuarryMap {
         const ty = r * TILE_SIZE;
 
         if (t === 'WALL') {
-          ctx.fillStyle = '#141218';
+          ctx.fillStyle = palette.wall;
           ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
-          // Beveled cliff rock face if walkable below
-          if (r + 1 < MAP_ROWS && this.tiles[r + 1][c] !== 'WALL') {
-            ctx.fillStyle = '#09080c';
+          if (r + 1 < this.rows && this.tiles[r + 1][c] !== 'WALL') {
+            ctx.fillStyle = palette.wallDeep;
             ctx.fillRect(tx, ty + TILE_SIZE - 10, TILE_SIZE, 10);
-            ctx.fillStyle = '#3f3b47';
+            ctx.fillStyle = palette.wallFace;
             ctx.fillRect(tx + 1, ty + TILE_SIZE - 9, TILE_SIZE - 2, 7);
-            ctx.fillStyle = '#78716c';
+            ctx.fillStyle = palette.wallHighlight;
             ctx.fillRect(tx + 2, ty + TILE_SIZE - 9, TILE_SIZE - 4, 2);
           } else {
-            ctx.fillStyle = '#1f1c24';
+            ctx.fillStyle = palette.wallSpeckle;
             ctx.fillRect(tx + 3, ty + 3, 7, 5);
             ctx.fillRect(tx + 13, ty + 12, 8, 5);
           }
-        } else if (t === 'FLOOR') {
-          ctx.fillStyle = (r + c) % 2 === 0 ? '#36322d' : '#302c27';
-          ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
-          // Carved flagstone bevels & pebbles
-          ctx.fillStyle = '#24211d';
-          ctx.fillRect(tx, ty + TILE_SIZE - 1, TILE_SIZE, 1);
-          ctx.fillRect(tx + TILE_SIZE - 1, ty, 1, TILE_SIZE);
-          ctx.fillStyle = '#47423b';
-          ctx.fillRect(tx + 2, ty + 2, 5, 2);
-          if ((r * 7 + c * 13) % 9 === 0) {
-            ctx.fillStyle = '#15803d'; // Subtle quarry moss tuft
-            ctx.fillRect(tx + 16, ty + 16, 4, 3);
+        } else if (t === 'FLOOR' || t === 'EXIT') {
+          this.drawFloorTile(ctx, tx, ty, r, c);
+          if (t === 'EXIT') {
+            const edge = this.edgeAt(c, r);
+            if (edge) this.drawChevron(ctx, tx, ty, edge);
           }
         } else if (t === 'STAIRS') {
-          ctx.fillStyle = '#292524';
+          ctx.fillStyle = palette.stairs;
           ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
           for (let s = 2; s < TILE_SIZE; s += 6) {
-            ctx.fillStyle = '#78716c';
+            ctx.fillStyle = palette.stairTread;
             ctx.fillRect(tx + 2, ty + s, TILE_SIZE - 4, 3);
-            ctx.fillStyle = '#a8a29e';
+            ctx.fillStyle = palette.stairHighlight;
             ctx.fillRect(tx + 3, ty + s, TILE_SIZE - 6, 1);
           }
         } else if (t === 'CHASM') {
-          ctx.fillStyle = '#07070c';
+          ctx.fillStyle = palette.chasm;
           ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
           if ((r + c) % 4 === 0) {
-            ctx.fillStyle = '#312e81';
+            ctx.fillStyle = palette.chasmSpark;
             ctx.fillRect(tx + 9, ty + 9, 3, 3);
           }
         } else if (t === 'LAVA') {
           const pulse = Math.sin(time * 0.005 + c * 0.8 + r * 0.5) > 0;
-          ctx.fillStyle = '#450a0a';
+          ctx.fillStyle = palette.lavaDeep;
           ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
-          ctx.fillStyle = pulse ? '#dc2626' : '#991b1b';
+          ctx.fillStyle = pulse ? palette.lavaMidHot : palette.lavaMid;
           ctx.fillRect(tx + 2, ty + 2, TILE_SIZE - 4, TILE_SIZE - 4);
-          ctx.fillStyle = pulse ? '#fde047' : '#f97316';
+          ctx.fillStyle = pulse ? palette.lavaCoreHot : palette.lavaCore;
           ctx.fillRect(tx + 5, ty + 8, TILE_SIZE - 10, 6);
         } else if (t === 'VINE_BRIDGE') {
           ctx.fillStyle = '#064e3b';
@@ -509,7 +507,130 @@ export class QuarryMap {
       }
     }
 
-    // 2. Draw Petrified Master Orin inside Faceted Amber-Violet Crystal
+    this.drawMotes(ctx, time, mapW, mapH);
+
+    if (this.definition.kind === 'QUARRY') {
+      this.drawQuarryProps(ctx, heroes, time);
+    }
+
+    for (const dp of this.dustParticles) {
+      ctx.save();
+      ctx.fillStyle = `rgba(${palette.dustRgb}, ${dp.timer * 1.4})`;
+      const radius = (1 - dp.timer * 2) * 3.5 + 1.5;
+      ctx.beginPath();
+      ctx.arc(dp.x, dp.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    drawHeroSprite(
+      ctx,
+      heroes.kaelen,
+      this.playerX,
+      this.playerY,
+      time,
+      this.playerFacing,
+      1,
+      this.isPlayerMoving
+    );
+    drawPointLight(ctx, this.playerX, this.playerY - 16, 68, '#f59e0b', 0.28);
+
+    if (this.swingTimer > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#fde047';
+      ctx.lineWidth = 3;
+      const arcX = this.playerX + (this.playerFacing === 'RIGHT' ? 18 : -18);
+      const arcY = this.playerY - 14;
+      ctx.beginPath();
+      ctx.arc(arcX, arcY, 19, -Math.PI * 0.45, Math.PI * 0.45, this.playerFacing === 'LEFT');
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    if (palette.rim) {
+      const gradient = ctx.createRadialGradient(
+        viewportW / 2,
+        viewportH / 2,
+        viewportW * 0.25,
+        viewportW / 2,
+        viewportH / 2,
+        viewportW * 0.72
+      );
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      gradient.addColorStop(1, palette.rim);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, viewportW, viewportH);
+    }
+
+    return { camX, camY };
+  }
+
+  private drawFloorTile(
+    ctx: CanvasRenderingContext2D,
+    tx: number,
+    ty: number,
+    r: number,
+    c: number
+  ): void {
+    const palette = this.palette;
+    ctx.fillStyle = (r + c) % 2 === 0 ? palette.floorA : palette.floorB;
+    ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
+    ctx.fillStyle = palette.floorShade;
+    ctx.fillRect(tx, ty + TILE_SIZE - 1, TILE_SIZE, 1);
+    ctx.fillRect(tx + TILE_SIZE - 1, ty, 1, TILE_SIZE);
+    ctx.fillStyle = palette.floorBevel;
+    ctx.fillRect(tx + 2, ty + 2, 5, 2);
+    if ((r * 7 + c * 13) % 9 === 0) {
+      ctx.fillStyle = palette.floorAccent;
+      ctx.fillRect(tx + 16, ty + 16, 4, 3);
+    }
+  }
+
+  private drawChevron(ctx: CanvasRenderingContext2D, tx: number, ty: number, edge: Edge): void {
+    ctx.fillStyle = this.palette.exitMark;
+    if (edge === 'SOUTH' || edge === 'NORTH') {
+      const y0 = edge === 'SOUTH' ? ty + 14 : ty + 8;
+      const dir = edge === 'SOUTH' ? 1 : -1;
+      ctx.fillRect(tx + 8, y0, 8, 2);
+      ctx.fillRect(tx + 6, y0 + dir * 3, 4, 2);
+      ctx.fillRect(tx + 14, y0 + dir * 3, 4, 2);
+      ctx.fillRect(tx + 10, y0 + dir * 5, 4, 2);
+    } else {
+      const x0 = edge === 'EAST' ? tx + 14 : tx + 8;
+      const dir = edge === 'EAST' ? 1 : -1;
+      ctx.fillRect(x0, ty + 8, 2, 8);
+      ctx.fillRect(x0 + dir * 3, ty + 6, 2, 4);
+      ctx.fillRect(x0 + dir * 3, ty + 14, 2, 4);
+      ctx.fillRect(x0 + dir * 5, ty + 10, 2, 4);
+    }
+  }
+
+  private drawMotes(
+    ctx: CanvasRenderingContext2D,
+    time: number,
+    mapW: number,
+    mapH: number
+  ): void {
+    const palette = this.palette;
+    if (palette.moteCount <= 0 || palette.moteAlpha <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = palette.moteAlpha;
+    ctx.fillStyle = palette.mote;
+    for (let i = 0; i < palette.moteCount; i++) {
+      const x = ((i * 137 + Math.sin(time * 0.0004 + i) * 36) % mapW + mapW) % mapW;
+      const y = (time * 0.018 + i * 83) % mapH;
+      ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.restore();
+  }
+
+  private drawQuarryProps(
+    ctx: CanvasRenderingContext2D,
+    heroes: Record<HeroId, Hero>,
+    time: number
+  ): void {
     const orinX = 7.5 * TILE_SIZE;
     const orinY = 20.8 * TILE_SIZE;
     const orinRows = [
@@ -536,29 +657,20 @@ export class QuarryMap {
     ctx.drawImage(orinSprite, orinX - 14, orinY - 30, 28, 30);
     drawPointLight(ctx, orinX, orinY - 14, 62, '#f59e0b', 0.36);
 
-    // 3. Draw Outlined Pixel Wardstones
     for (const ws of this.wardstones) {
       const wx = (ws.tileX + 0.5) * TILE_SIZE;
       const wy = (ws.tileY + 0.5) * TILE_SIZE;
       const color =
-        ws.requiredRealm === 'DAWN'
-          ? '#10b981'
-          : ws.requiredRealm === 'OBSIDIAN'
-          ? '#ef4444'
-          : '#a855f7';
+        ws.requiredRealm === 'DAWN' ? '#10b981' : ws.requiredRealm === 'OBSIDIAN' ? '#ef4444' : '#a855f7';
 
-      const wsSprite = getCachedPixelSprite(
-        `prop_${ws.id}_${ws.attunedBy}`,
-        WARDSTONE_ROWS,
-        {
-          g: '#27272a',
-          G: '#52525b',
-          d: '#18181b',
-          D: '#3f3f46',
-          c: ws.attunedBy !== 'NONE' ? color : '#71717a',
-          W: ws.attunedBy !== 'NONE' ? '#fde047' : '#a1a1aa',
-        }
-      );
+      const wsSprite = getCachedPixelSprite(`prop_${ws.id}_${ws.attunedBy}`, WARDSTONE_ROWS, {
+        g: '#27272a',
+        G: '#52525b',
+        d: '#18181b',
+        D: '#3f3f46',
+        c: ws.attunedBy !== 'NONE' ? color : '#71717a',
+        W: ws.attunedBy !== 'NONE' ? '#fde047' : '#a1a1aa',
+      });
       ctx.drawImage(wsSprite, wx - 11, wy - 25, 22, 26);
       drawPointLight(
         ctx,
@@ -570,7 +682,6 @@ export class QuarryMap {
       );
     }
 
-    // 4. Draw Titan Waygate, Master Anvil & Relic Chest
     const wgX = 12.5 * TILE_SIZE;
     const wgY = 7.5 * TILE_SIZE;
     ctx.fillStyle = '#09070d';
@@ -597,22 +708,17 @@ export class QuarryMap {
 
     const chestX = 31.5 * TILE_SIZE;
     const chestY = 8.5 * TILE_SIZE;
-    const chestSprite = getCachedPixelSprite(
-      `prop_chest_${this.relicChestOpened}`,
-      CHEST_ROWS,
-      {
-        Y: '#fbbf24',
-        b: this.relicChestOpened ? '#44403c' : '#b45309',
-        W: this.relicChestOpened ? '#71717a' : '#fef08a',
-        d: '#1c1917',
-      }
-    );
+    const chestSprite = getCachedPixelSprite(`prop_chest_${this.relicChestOpened}`, CHEST_ROWS, {
+      Y: '#fbbf24',
+      b: this.relicChestOpened ? '#44403c' : '#b45309',
+      W: this.relicChestOpened ? '#71717a' : '#fef08a',
+      d: '#1c1917',
+    });
     ctx.drawImage(chestSprite, chestX - 11, chestY - 13, 22, 14);
     if (!this.relicChestOpened) {
       drawPointLight(ctx, chestX, chestY - 6, 44, '#fde047', 0.36);
     }
 
-    // 5. Draw Unrecruited Party Members on the Field
     if (!heroes.sura.recruited) {
       drawHeroSprite(ctx, heroes.sura, 20.5 * TILE_SIZE, 21.2 * TILE_SIZE, time, 'LEFT');
       drawPointLight(ctx, 20.5 * TILE_SIZE, 21.2 * TILE_SIZE - 16, 46, '#10b981', 0.3);
@@ -626,7 +732,6 @@ export class QuarryMap {
       drawPointLight(ctx, 15.5 * TILE_SIZE, 8.2 * TILE_SIZE - 16, 48, '#a855f7', 0.34);
     }
 
-    // 6. Draw Visible Field Enemies Using Full Hi-Bit Enemy Pixel Sprites!
     for (const fe of this.fieldEnemies) {
       if (fe.defeated) continue;
       const proxyEnemy = this.fieldEnemySprites.get(fe.id);
@@ -637,51 +742,5 @@ export class QuarryMap {
         drawPointLight(ctx, fe.x, fe.y - 20, 68, '#ef4444', 0.38);
       }
     }
-
-    // Draw Footstep Dust Puffs behind Kaelen
-    for (const dp of this.dustParticles) {
-      ctx.save();
-      ctx.fillStyle = `rgba(214, 211, 209, ${dp.timer * 1.4})`;
-      const r = (1 - dp.timer * 2) * 3.5 + 1.5;
-      ctx.beginPath();
-      ctx.arc(dp.x, dp.y, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 7. Draw Player (Kaelen Vance) + Field Ambush Swing Arc
-    drawHeroSprite(
-      ctx,
-      heroes.kaelen,
-      this.playerX,
-      this.playerY,
-      time,
-      this.playerFacing,
-      1,
-      this.isPlayerMoving
-    );
-    drawPointLight(ctx, this.playerX, this.playerY - 16, 68, '#f59e0b', 0.28);
-
-    if (this.swingTimer > 0) {
-      ctx.save();
-      ctx.strokeStyle = '#fde047';
-      ctx.lineWidth = 3;
-      const arcX = this.playerX + (this.playerFacing === 'RIGHT' ? 18 : -18);
-      const arcY = this.playerY - 14;
-      ctx.beginPath();
-      ctx.arc(
-        arcX,
-        arcY,
-        19,
-        -Math.PI * 0.45,
-        Math.PI * 0.45,
-        this.playerFacing === 'LEFT'
-      );
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.restore();
-    return { camX, camY };
   }
 }

@@ -22,8 +22,12 @@ The palm-sized core of the Edict Pillar that fell into Oakhaven's quarry and fus
 _Avoid_: Core Shard
 
 **Realm**:
-One of the distinct geopolitical territories and superpower civilizations of Vaelora (*The Mythic Dawn*, *The Obsidian Reign*, *The Astral Wastes*), along with the neutral central hub (*The Grand Archive*) and border regions.
+One of the distinct geopolitical territories of Vaelora: the three superpowers (*The Mythic Dawn*, *The Obsidian Reign*, *The Astral Wastes*), the neutral hub (*The Grand Archive*), and the border region (*The Frontier*).
 _Avoid_: Era, timeline, dimension, zone, domain (when referring to a geopolitical territory)
+
+**Frontier**:
+The border-region Realm of Act I, containing Oakhaven, the Cratered Quarry, and the Kingsroad Pass, lying between The Obsidian Reign and The Mythic Dawn.
+_Avoid_: treating Oakhaven as part of The Obsidian Reign
 
 **Domain**:
 One of the three primal magical aspects of the Edict Pillar (`DAWN`, `OBSIDIAN`, `ASTRAL`) drawn from Vaelora's ley-lines and channeled through the Heart-Shard Gauntlet to transform field Wardstones or shift the active battlefield ley-line state.

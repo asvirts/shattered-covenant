@@ -1,6 +1,50 @@
+import { ZoneAudioProfileId } from './types';
+
+interface ZoneAudioSpec {
+  hz: number;
+  type: OscillatorType;
+  gain: number;
+  motif: number[];
+  motifType: OscillatorType;
+}
+
+const ZONE_AUDIO: Record<ZoneAudioProfileId, ZoneAudioSpec> = {
+  CRATER_QUARRY: {
+    hz: 82.41,
+    type: 'sawtooth',
+    gain: 0.028,
+    motif: [659.25, 783.99, 987.77],
+    motifType: 'sine',
+  },
+  OAKHAVEN: {
+    hz: 146.83,
+    type: 'triangle',
+    gain: 0.03,
+    motif: [220, 277.18, 329.63, 440],
+    motifType: 'triangle',
+  },
+  KINGSROAD_PASS: {
+    hz: 98,
+    type: 'sine',
+    gain: 0.032,
+    motif: [196, 246.94, 293.66],
+    motifType: 'sine',
+  },
+  GRAND_ARCHIVE: {
+    hz: 220,
+    type: 'sine',
+    gain: 0.022,
+    motif: [523.25, 659.25, 783.99, 1046.5],
+    motifType: 'sine',
+  },
+};
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   public muted = false;
+  private currentProfile: ZoneAudioProfileId | null = null;
+  private droneGain: GainNode | null = null;
+  private droneNodes: OscillatorNode[] = [];
 
   private ensureContext(): AudioContext | null {
     if (this.muted) return null;
@@ -133,6 +177,76 @@ class SoundEngine {
     notes.forEach((f, i) => {
       this.playTone(f, f, i === 6 ? 0.45 : 0.12, 'triangle', 0.12, delays[i]);
     });
+  }
+
+  public playZoneAmbient(profile: ZoneAudioProfileId): void {
+    this.currentProfile = profile;
+    this.stopDrone();
+    if (this.muted) return;
+    this.startDrone(profile);
+    this.playMotif(profile);
+  }
+
+  public setMuted(muted: boolean): void {
+    this.muted = muted;
+    if (muted) this.stopDrone();
+    else if (this.currentProfile) this.startDrone(this.currentProfile);
+  }
+
+  public unlock(): void {
+    this.ensureContext();
+    if (!this.muted && this.currentProfile && this.droneNodes.length === 0) {
+      this.startDrone(this.currentProfile);
+    }
+  }
+
+  private playMotif(profile: ZoneAudioProfileId): void {
+    const spec = ZONE_AUDIO[profile];
+    spec.motif.forEach((freq, i) => {
+      this.playTone(freq, freq, 0.22, spec.motifType, 0.05, i * 0.09);
+    });
+  }
+
+  private startDrone(profile: ZoneAudioProfileId): void {
+    const ctx = this.ensureContext();
+    if (!ctx || this.droneNodes.length > 0) return;
+    const spec = ZONE_AUDIO[profile];
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(spec.gain, now + 0.18);
+    gain.connect(ctx.destination);
+    const nodes: OscillatorNode[] = [];
+    for (const detune of [0, 7]) {
+      const osc = ctx.createOscillator();
+      osc.type = spec.type;
+      osc.frequency.setValueAtTime(spec.hz, now);
+      osc.detune.setValueAtTime(detune, now);
+      osc.connect(gain);
+      osc.start(now);
+      nodes.push(osc);
+    }
+    this.droneGain = gain;
+    this.droneNodes = nodes;
+  }
+
+  private stopDrone(): void {
+    const ctx = this.ctx;
+    const gain = this.droneGain;
+    const nodes = this.droneNodes;
+    this.droneGain = null;
+    this.droneNodes = [];
+    if (!ctx || !gain || nodes.length === 0) return;
+    const now = ctx.currentTime;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    for (const osc of nodes) osc.stop(now + 0.13);
+    const last = nodes[nodes.length - 1];
+    last.onended = () => {
+      for (const osc of nodes) osc.disconnect();
+      gain.disconnect();
+    };
   }
 }
 
