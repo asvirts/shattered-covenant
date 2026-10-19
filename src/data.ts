@@ -154,20 +154,79 @@ export const STARTER_TRINKETS: Record<HeroId, Trinket[]> = {
   ],
 };
 
+/** Creates fresh Fault-Line Slam and Bastion Decree skills for the Heart-Shard unlock. */
+function kaelenShardSkills(): Skill[] {
+  return [
+    {
+      id: 'kaelen_fault_slammer',
+      name: 'Fault-Line Slam',
+      ownerId: 'kaelen',
+      costIns: 14,
+      cooldown: 0,
+      target: 'ENEMY_SINGLE',
+      damageType: 'PHYSICAL',
+      powerMultiplier: 1.45,
+      stabilityBreak: 2,
+      domainAffinity: 'OBSIDIAN',
+      description: 'Channels the Heart-Shard into a seismic blow that cracks 2 Stability pips.',
+      domainBonusText: 'Obsidian Domain: Cracks +1 extra Stability pip (3 total).',
+    },
+    {
+      id: 'kaelen_bastion_decree',
+      name: 'Bastion Decree',
+      ownerId: 'kaelen',
+      costIns: 12,
+      cooldown: 2,
+      target: 'ALLY_ALL',
+      damageType: 'BUFF',
+      powerMultiplier: 0.8,
+      stabilityBreak: 0,
+      domainAffinity: 'OBSIDIAN',
+      description: 'Raises a carved Wardstone barrier (35 Shield HP) on all allies and Taunts enemies to target Kaelen.',
+      domainBonusText: 'Obsidian Domain: Shield strength increased by +30%.',
+      statusApplied: {
+        type: 'TAUNT',
+        name: 'Taunt',
+        duration: 2,
+        value: 100,
+        toSelf: true,
+      },
+    },
+  ];
+}
+
+/**
+ * Updates the supplied hero in place with Kaelen's shard presentation, epithet,
+ * class name, and missing Fault-Line Slam and Bastion Decree skills.
+ * Existing skills with matching IDs are preserved. Stats, gear, and weapon tier
+ * are unchanged.
+ */
+export function grantHeartShardKit(hero: Hero): void {
+  hero.presentation = 'SHARD';
+  hero.epithet = 'The Faultline Mason';
+  hero.className = 'Runic Mason';
+  for (const sk of kaelenShardSkills()) {
+    if (!hero.skills.some((s) => s.id === sk.id)) {
+      hero.skills.push(sk);
+    }
+  }
+}
+
+/** Creates the starting hero roster with apprentice Kaelen recruited and his allies locked. */
 export function createInitialHeroes(): Record<HeroId, Hero> {
   const kaelenBase = {
-    maxHp: 165,
-    hp: 165,
-    maxIns: 60,
-    ins: 60,
-    mgt: 24,
-    res: 14,
-    grt: 20,
-    wrd: 15,
-    tmp: 18,
-    crit: 10,
-    brk: 1,
-    thr: 150,
+    maxHp: 118,
+    hp: 118,
+    maxIns: 36,
+    ins: 36,
+    mgt: 13,
+    res: 7,
+    grt: 9,
+    wrd: 6,
+    tmp: 15,
+    crit: 4,
+    brk: 0,
+    thr: 60,
   };
 
   const suraBase = {
@@ -219,14 +278,15 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
     kaelen: {
       id: 'kaelen',
       name: 'Kaelen Vance',
-      epithet: 'The Faultline Mason',
-      origin: 'Oakhaven Quarry (Obsidian Border)',
-      className: 'Runic Mason',
+      epithet: 'Apprentice Mason',
+      origin: 'Oakhaven (Obsidian Border Hamlet)',
+      className: "Mason's Apprentice",
       realm: 'OBSIDIAN',
+      presentation: 'HUMBLE',
       recruited: true,
       level: 1,
       exp: 0,
-      talentPoints: 1,
+      talentPoints: 0,
       baseStats: { ...kaelenBase },
       stats: { ...kaelenBase },
       skills: [
@@ -241,42 +301,7 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
           powerMultiplier: 1.0,
           stabilityBreak: 1,
           domainAffinity: 'OBSIDIAN',
-          description: 'Basic heavy maul strike that chips 1 Stability pip and restores +8 INS.',
-        },
-        {
-          id: 'kaelen_fault_slammer',
-          name: 'Fault-Line Slam',
-          ownerId: 'kaelen',
-          costIns: 14,
-          cooldown: 0,
-          target: 'ENEMY_SINGLE',
-          damageType: 'PHYSICAL',
-          powerMultiplier: 1.45,
-          stabilityBreak: 2,
-          domainAffinity: 'OBSIDIAN',
-          description: 'Channels the Heart-Shard into a seismic blow that cracks 2 Stability pips.',
-          domainBonusText: 'Obsidian Domain: Cracks +1 extra Stability pip (3 total).',
-        },
-        {
-          id: 'kaelen_bastion_decree',
-          name: 'Bastion Decree',
-          ownerId: 'kaelen',
-          costIns: 12,
-          cooldown: 2,
-          target: 'ALLY_ALL',
-          damageType: 'BUFF',
-          powerMultiplier: 0.8,
-          stabilityBreak: 0,
-          domainAffinity: 'OBSIDIAN',
-          description: 'Raises a carved Wardstone barrier (35 Shield HP) on all allies and Taunts enemies to target Kaelen.',
-          domainBonusText: 'Obsidian Domain: Shield strength increased by +30%.',
-          statusApplied: {
-            type: 'TAUNT',
-            name: 'Taunt',
-            duration: 2,
-            value: 100,
-            toSelf: true,
-          },
+          description: 'A plain swing of the guild chisel. Chips 1 Stability and steadies your breath.',
         },
       ],
       talents: [
@@ -376,14 +401,14 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
       weaponTiers: [
         {
           tier: 1,
-          name: 'Quarryman’s Maul',
-          title: 'Tier I Iron Sledge',
+          name: 'Apprentice Chisel-Maul',
+          title: 'Tier I Worn Quarry Iron',
           mgtBonus: 0,
           resBonus: 0,
           critBonus: 0,
-          passiveText: 'Standard Oakhaven iron stone-splitter paired with the awakened Heart-Shard Gauntlet.',
+          passiveText: 'A nicked iron splitter from the guild loft. No runes, no glow, and no Heart-Shard.',
           visualColor: '#9ca3af',
-          glowColor: '#f59e0b',
+          glowColor: '#d6d3d1',
         },
         {
           tier: 2,
@@ -430,8 +455,8 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
           glowColor: '#f43f5e',
         },
       ],
-      trinkets: [...STARTER_TRINKETS.kaelen],
-      glyphSockets: [ALL_GLYPHS[1], ALL_GLYPHS[0], null, null],
+      trinkets: [],
+      glyphSockets: [null, null, null, null],
       statuses: [],
       shieldHp: 0,
       ctbValue: 0,
@@ -446,6 +471,7 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
       origin: 'Mythic Dawn (Dawn Wilds)',
       className: 'Sky-Lancer',
       realm: 'DAWN',
+      presentation: 'SHARD',
       recruited: false,
       level: 1,
       exp: 0,
@@ -668,6 +694,7 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
       origin: 'The Astral Wastes',
       className: 'Astral Weaver',
       realm: 'ASTRAL',
+      presentation: 'SHARD',
       recruited: false,
       level: 1,
       exp: 0,
@@ -885,6 +912,7 @@ export function createInitialHeroes(): Record<HeroId, Hero> {
       origin: 'Obsidian Reign (Inquisitorial Order)',
       className: 'Inkwright',
       realm: 'OBSIDIAN',
+      presentation: 'SHARD',
       recruited: false,
       level: 1,
       exp: 0,
@@ -1245,34 +1273,100 @@ export function createEnemyFromTemplate(templateId: string, indexSuffix = ''): E
 }
 
 export const DIALOGUES: Record<string, DialogueLine[]> = {
-  intro: [
+  wake: [
     {
-      speaker: 'The Shattering of the Pillar',
-      title: 'Act I — Oakhaven Border Quarry',
+      speaker: 'Oakhaven',
+      title: 'Masons’ Guild Loft',
       portraitId: 'stone',
-      expression: 'SURPRISED',
-      text: 'Moments ago, the sky above the central capital tore open. The Edict Pillar—the ancient Titan monument binding the magic of Vaelora—shattered in a blinding cataclysm.',
+      expression: 'NEUTRAL',
+      text: 'You wake on a straw pallet under the guild loft. The hamlet is still quiet. Dust hangs in the shutter-light. Your hands are empty — no armor, no runes, no glowing stone.',
     },
     {
       speaker: 'Kaelen Vance',
-      title: 'The Faultline Mason',
+      title: 'Apprentice Mason',
+      portraitId: 'kaelen',
+      expression: 'NEUTRAL',
+      look: 'HUMBLE',
+      text: 'Another morning. Master Orin wanted the boundary stone checked before the crews arrive. Just the iron chisel from the loft. I’m not a soldier.',
+    },
+    {
+      speaker: 'Kaelen Vance',
+      title: 'Apprentice Mason',
+      portraitId: 'kaelen',
+      expression: 'NEUTRAL',
+      look: 'HUMBLE',
+      text: 'North past the well, the cut climbs to the quarry. I’d better not keep him waiting.',
+    },
+  ],
+
+  pallet: [
+    {
+      speaker: 'Straw Pallet',
+      title: 'Guild Loft',
+      portraitId: 'kaelen',
+      expression: 'NEUTRAL',
+      text: 'The pallet you woke on. A spare shirt, a cracked cup, and stone dust in the wool. Nothing here will make you stronger.',
+    },
+  ],
+
+  village_sign: [
+    {
+      speaker: 'Road Sign',
+      title: 'Oakhaven Hamlet',
+      portraitId: 'stone',
+      expression: 'NEUTRAL',
+      text: 'North: Oakhaven Quarry. Mind the chasm. South: the hamlet well. The sign is just paint on a board.',
+    },
+  ],
+
+  bram: [
+    {
+      speaker: 'Bram',
+      title: 'Guild Hand',
+      portraitId: 'stone',
+      expression: 'WARM',
+      text: 'Morning, Kaelen. Orin’s already up the cut with his chalk. Take the chisel, not a hero’s pose — you’re the apprentice, and the ridges have been restless.',
+    },
+  ],
+
+  intro: [
+    {
+      speaker: 'The Quarry Rim',
+      title: 'Oakhaven Border Quarry',
+      portraitId: 'stone',
+      expression: 'SURPRISED',
+      text: 'You step off the hamlet road onto the quarry floor. Master Orin is at the boundary stone, chalk in hand. Then the sky above the distant capital tears open.',
+    },
+    {
+      speaker: 'Kaelen Vance',
+      title: 'Apprentice Mason',
       portraitId: 'kaelen',
       expression: 'SURPRISED',
-      text: 'Master Orin! Hold on! That falling shard—it’s fused straight into my mason’s gauntlet, and the rune-crystal encasing you won’t budge under my chisel!',
+      look: 'HUMBLE',
+      text: 'Master Orin — get back from the rim! Something is falling straight at us!',
+    },
+    {
+      speaker: 'Master Orin',
+      title: 'Chief Quarryman of Oakhaven',
+      portraitId: 'orin',
+      expression: 'GRIM',
+      look: 'SHARD',
+      text: 'Kaelen, down! (He shoves you clear. The impact blooms into rune-crystal around him. A palm-sized shard punches through your work glove and stays there, hot and humming.)',
     },
     {
       speaker: 'Master Orin (Petrified)',
       title: 'Chief Quarryman of Oakhaven',
       portraitId: 'orin',
       expression: 'GRIM',
-      text: '...(A faint resonance echoes from within the amber crystal)... Kaelen... what struck your gauntlet is the Heart-Shard of the Covenant Stone itself. Normal iron cannot break a Titan curse.',
+      text: '...(A faint resonance from inside the amber)... Kaelen... that is the Heart-Shard of the Covenant Stone. It is a key, not a weapon. Your iron is still just iron. It will not make you strong.',
     },
     {
       speaker: 'Kaelen Vance',
-      title: 'The Faultline Mason',
+      title: 'Apprentice Mason',
       portraitId: 'kaelen',
       expression: 'DETERMINED',
-      text: 'The Heart-Shard is pulsing toward the old Wardstone by the eastern chasm. And I can hear wyvern wings and Imperial boots converging on the upper ridges. Let’s move!',
+      look: 'SHARD',
+      text: 'It won’t come off. I can hear wings and heavy boots on the upper ridges. I’m still only a mason with a chisel — but I’m not leaving you like this. The eastern Wardstone is pulsing. Let’s move.',
     },
   ],
 

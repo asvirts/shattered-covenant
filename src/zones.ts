@@ -251,7 +251,7 @@ const QUARRY_ENEMIES: FieldEnemySpawn[] = [
     homeTileY: 23,
     patrolRadius: 36,
     dir: 'LEFT',
-    encounterIds: ['kobold_scavenger', 'kobold_scavenger'],
+    encounterIds: ['kobold_scavenger'],
   },
   {
     id: 'fe_hound_1',
@@ -297,7 +297,6 @@ export const ZONE_BY_ID: Record<ZoneId, ZoneDefinition> = {
     start: { tileX: 9, tileY: 22, facing: 'RIGHT' },
     rects: [
       { c1: 4, r1: 19, c2: 13, r2: 24, type: 'FLOOR' },
-      { c1: 6, r1: 20, c2: 7, r2: 21, type: 'CRATER' },
       { c1: 14, r1: 19, c2: 17, r2: 24, type: 'CHASM' },
       { c1: 18, r1: 19, c2: 29, r2: 24, type: 'FLOOR' },
       { c1: 25, r1: 16, c2: 27, r2: 18, type: 'STAIRS' },
@@ -333,11 +332,27 @@ export const ZONE_BY_ID: Record<ZoneId, ZoneDefinition> = {
     audioProfile: 'OAKHAVEN',
     defaultBattleDomain: 'NONE',
     kind: 'SHELL',
-    start: { tileX: 18, tileY: 14, facing: 'RIGHT' },
+    start: { tileX: 13, tileY: 19, facing: 'RIGHT' },
     rects: [
       { c1: 8, r1: 6, c2: 29, r2: 21, type: 'FLOOR' },
       { c1: 16, r1: 1, c2: 19, r2: 6, type: 'FLOOR' },
       { c1: 29, r1: 12, c2: 36, r2: 15, type: 'FLOOR' },
+      // Guild loft. Kaelen wakes on the pallet inside; the door faces the lane.
+      { c1: 10, r1: 16, c2: 16, r2: 21, type: 'WALL' },
+      { c1: 11, r1: 17, c2: 15, r2: 20, type: 'FLOOR' },
+      { c1: 12, r1: 16, c2: 14, r2: 16, type: 'FLOOR' },
+      // Bram's cottage, west of the square.
+      { c1: 9, r1: 8, c2: 14, r2: 13, type: 'WALL' },
+      { c1: 10, r1: 9, c2: 13, r2: 12, type: 'FLOOR' },
+      { c1: 13, r1: 13, c2: 13, r2: 13, type: 'FLOOR' },
+      // East cottage, clear of the Kingsroad corridor.
+      { c1: 22, r1: 7, c2: 27, r2: 11, type: 'WALL' },
+      { c1: 23, r1: 8, c2: 26, r2: 10, type: 'FLOOR' },
+      { c1: 24, r1: 11, c2: 25, r2: 11, type: 'FLOOR' },
+      // Woodshed.
+      { c1: 23, r1: 16, c2: 27, r2: 20, type: 'WALL' },
+      { c1: 24, r1: 17, c2: 26, r2: 19, type: 'FLOOR' },
+      { c1: 25, r1: 16, c2: 25, r2: 16, type: 'FLOOR' },
     ],
     exits: [
       {

@@ -633,6 +633,12 @@ export class BattleEngine {
     }, 480);
   }
 
+  /**
+   * Reduces enemy Stability by brkAmt pips; ignores nonpositive amounts and
+   * enemies already shattered or at zero Stability. Reaching zero interrupts
+   * channeling, delays the enemy, and grants Ley-Line Gauge. A living Kaelen
+   * gains 25 Shield HP only if he has Master Orin's Plumb-Line equipped.
+   */
   private damageStability(enemy: Enemy, brkAmt: number, x: number, y: number): void {
     if (enemy.shattered || brkAmt <= 0 || enemy.stability <= 0) return;
 
@@ -646,9 +652,9 @@ export class BattleEngine {
       this.spawnFloat('SHATTERED! (1.5x DMG)', x, y - 42, '#fde047', true);
       this.log(`${enemy.name}'s Stability is SHATTERED! Delayed on timeline & takes 1.5x damage!`);
 
-      // Trigger Kaelen's Master Orin Plumb-Line trinket
+      // Master Orin's Plumb-Line is a later keepsake, not part of the opening kit.
       const kaelen = this.heroes.find((h) => h.id === 'kaelen' && h.stats.hp > 0);
-      if (kaelen) {
+      if (kaelen?.trinkets.some((t) => t.id === 'trinket_orin_chisel')) {
         kaelen.shieldHp += 25;
       }
     }

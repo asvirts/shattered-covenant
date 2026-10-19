@@ -27,7 +27,10 @@ export interface InteractableTrigger {
     | 'WAYGATE'
     | 'ANVIL'
     | 'CHEST'
-    | 'BOSS';
+    | 'BOSS'
+    | 'PALLET'
+    | 'VILLAGE_SIGN'
+    | 'VILLAGE_NPC';
   label: string;
   promptText: string;
   x: number;
@@ -83,6 +86,8 @@ export class ZoneMap {
   public wardstones: Wardstone[] = [];
   public relicChestOpened = false;
   public fieldEnemies: FieldEnemy[] = [];
+  /** The Heart-Shard crater is painted only after the opening dialogue. */
+  public shardFallen = false;
 
   private fieldEnemySprites = new Map<string, ReturnType<typeof createEnemyFromTemplate>>();
   private palette: BiomePalette;
@@ -189,6 +194,7 @@ export class ZoneMap {
     }
   }
 
+  /** Builds the active zone from its rects and exits, then repaints the crater if the shard has already fallen. */
   private buildTiles(): void {
     this.tiles = [];
     for (let r = 0; r < this.rows; r++) {
@@ -213,6 +219,31 @@ export class ZoneMap {
         else if (exit.edge === 'WEST') this.tiles[exit.cross + i][0] = 'EXIT';
         else this.tiles[exit.cross + i][this.cols - 1] = 'EXIT';
       }
+    }
+    if (this.shardFallen) this.paintCrater();
+  }
+
+  /**
+   * Marks the shard as fallen and paints its crater if the quarry is active.
+   * Later quarry loads repaint the crater; repeated calls have no effect.
+   */
+  public applyShardfall(): void {
+    if (this.shardFallen) return;
+    this.shardFallen = true;
+    this.paintCrater();
+  }
+
+  /** Paints the impact crater into the active quarry's tiles; does nothing in other zones. */
+  private paintCrater(): void {
+    if (this.definition.id !== 'cratered_quarry') return;
+    const cells: [number, number][] = [
+      [6, 20],
+      [7, 20],
+      [6, 21],
+      [7, 21],
+    ];
+    for (const [c, r] of cells) {
+      if (this.tiles[r]) this.tiles[r][c] = 'CRATER';
     }
   }
 
@@ -242,6 +273,7 @@ export class ZoneMap {
     }
   }
 
+  /** Checks whether the player’s collision footprint avoids map boundaries and impassable terrain. */
   public isWalkablePixel(px: number, py: number): boolean {
     const margin = 6;
     const points = [
@@ -285,20 +317,55 @@ export class ZoneMap {
     return null;
   }
 
+  /**
+   * Returns the closest interaction less than 38 world pixels from the player,
+   * or null if none is in reach. Wardstones with unmet recruitment requirements
+   * remain eligible, with prompts explaining the requirement.
+   */
   public getNearestTrigger(heroes: Record<HeroId, Hero>): InteractableTrigger | null {
-    if (this.definition.kind !== 'QUARRY') return null;
+    const triggers: InteractableTrigger[] = [];
 
-    const triggers: InteractableTrigger[] = [
-      {
+    if (this.definition.id === 'oakhaven_town') {
+      triggers.push(
+        {
+          id: 'pallet',
+          type: 'PALLET',
+          label: 'Sleeping pallet',
+          promptText: '[Space / Click] Look at the pallet',
+          x: 13.5 * TILE_SIZE,
+          y: 19.2 * TILE_SIZE,
+        },
+        {
+          id: 'sign',
+          type: 'VILLAGE_SIGN',
+          label: 'Hamlet sign',
+          promptText: '[Space / Click] Read the road sign',
+          x: 15.2 * TILE_SIZE,
+          y: 7.4 * TILE_SIZE,
+        },
+        {
+          id: 'bram',
+          type: 'VILLAGE_NPC',
+          label: 'Bram',
+          promptText: '[Space / Click] Speak with Bram',
+          x: 13.2 * TILE_SIZE,
+          y: 14.6 * TILE_SIZE,
+        }
+      );
+    } else if (this.definition.kind !== 'QUARRY') {
+      return null;
+    } else if (this.shardFallen) {
+      triggers.push({
         id: 'orin',
         type: 'NPC_ORIN',
         label: 'Master Orin (Petrified)',
         promptText: '[Space / Click] Inspect Petrified Master Orin',
         x: 7.5 * TILE_SIZE,
         y: 20.8 * TILE_SIZE,
-      },
-    ];
+      });
+    }
 
+    if (this.definition.kind === 'QUARRY') {
     for (const ws of this.wardstones) {
       if (ws.attunedBy === 'NONE') {
         const canAttune =
@@ -377,10 +444,11 @@ export class ZoneMap {
         id: 'chest_1',
         type: 'CHEST',
         label: 'Titan Relic Chest',
-        promptText: '[Space / Click] Open Titan Relic Cache (+5 Heart-Ore & +1 Talent Pt)',
+        promptText: '[Space / Click] Open Titan Relic Cache (+5 Heart-Ore, Talent, & Orin\'s Plumb-Line)',
         x: 31.5 * TILE_SIZE,
         y: 8.5 * TILE_SIZE,
       });
+    }
     }
 
     let best: InteractableTrigger | null = null;
@@ -395,6 +463,12 @@ export class ZoneMap {
     return best;
   }
 
+  /**
+   * Draws the visible map, characters, and effects for the current shardfall state; returns camera offsets.
+   * Viewport dimensions and camera offsets are in pixels; time is an animation
+   * timestamp in milliseconds. Subtract the offsets from world coordinates to
+   * obtain viewport coordinates.
+   */
   public render(
     ctx: CanvasRenderingContext2D,
     viewportW: number,
@@ -509,7 +583,9 @@ export class ZoneMap {
 
     this.drawMotes(ctx, time, mapW, mapH);
 
-    if (this.definition.kind === 'QUARRY') {
+    if (this.definition.id === 'oakhaven_town') {
+      this.drawHamletProps(ctx);
+    } else if (this.definition.kind === 'QUARRY') {
       this.drawQuarryProps(ctx, heroes, time);
     }
 
@@ -533,7 +609,13 @@ export class ZoneMap {
       1,
       this.isPlayerMoving
     );
-    drawPointLight(ctx, this.playerX, this.playerY - 16, 68, '#f59e0b', 0.28);
+    const kaelen = heroes.kaelen;
+    if (kaelen.weaponTierIndex > 0) {
+      const glow = kaelen.weaponTiers[kaelen.weaponTierIndex]?.glowColor ?? '#f59e0b';
+      drawPointLight(ctx, this.playerX, this.playerY - 16, 68, glow, 0.28);
+    } else if (kaelen.presentation === 'SHARD') {
+      drawPointLight(ctx, this.playerX, this.playerY - 16, 18, '#c084fc', 0.14);
+    }
 
     if (this.swingTimer > 0) {
       ctx.save();
@@ -626,6 +708,11 @@ export class ZoneMap {
     ctx.restore();
   }
 
+  /**
+   * Draws quarry landmarks, unrecruited allies, and undefeated field enemies,
+   * showing Orin alive or petrified according to shardfall state.
+   * time is an animation timestamp in milliseconds.
+   */
   private drawQuarryProps(
     ctx: CanvasRenderingContext2D,
     heroes: Record<HeroId, Hero>,
@@ -633,6 +720,27 @@ export class ZoneMap {
   ): void {
     const orinX = 7.5 * TILE_SIZE;
     const orinY = 20.8 * TILE_SIZE;
+    if (!this.shardFallen) {
+      const liveRows = [
+        '...hhhhhh...',
+        '..hssssssh..',
+        '..hsseessh..',
+        '..hssssssh..',
+        '...tttttt...',
+        '..tttttttt..',
+        '..t.tttt.t..',
+        '..b.b..b.b..',
+        '...b....b...',
+      ];
+      const liveOrin = getCachedPixelSprite('npc_orin_living', liveRows, {
+        h: '#d6d3d1',
+        s: '#e7c2a4',
+        e: '#1c1917',
+        t: '#78716c',
+        b: '#44403c',
+      });
+      ctx.drawImage(liveOrin, orinX - 12, orinY - 28, 24, 28);
+    } else {
     const orinRows = [
       '....CCCCCC....',
       '..CCccccccCC..',
@@ -656,6 +764,7 @@ export class ZoneMap {
     });
     ctx.drawImage(orinSprite, orinX - 14, orinY - 30, 28, 30);
     drawPointLight(ctx, orinX, orinY - 14, 62, '#f59e0b', 0.36);
+    }
 
     for (const ws of this.wardstones) {
       const wx = (ws.tileX + 0.5) * TILE_SIZE;
@@ -742,5 +851,62 @@ export class ZoneMap {
         drawPointLight(ctx, fe.x, fe.y - 20, 68, '#ef4444', 0.38);
       }
     }
+  }
+
+  /** Draws Oakhaven’s well, sign, pallet, Bram, and woodpile. */
+  private drawHamletProps(ctx: CanvasRenderingContext2D): void {
+    const wellX = 20.5 * TILE_SIZE;
+    const wellY = 14.5 * TILE_SIZE;
+    ctx.fillStyle = '#44403c';
+    ctx.fillRect(wellX - 7, wellY - 6, 14, 10);
+    ctx.fillStyle = '#1c1917';
+    ctx.fillRect(wellX - 5, wellY - 4, 10, 6);
+    ctx.fillStyle = '#0e7490';
+    ctx.fillRect(wellX - 3, wellY - 2, 6, 3);
+    ctx.fillStyle = '#a8a29e';
+    ctx.fillRect(wellX - 8, wellY - 8, 16, 2);
+
+    const signX = 15.2 * TILE_SIZE;
+    const signY = 7.4 * TILE_SIZE;
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(signX - 1, signY - 14, 2, 14);
+    ctx.fillStyle = '#d6d3d1';
+    ctx.fillRect(signX - 8, signY - 16, 16, 7);
+    ctx.fillStyle = '#44403c';
+    ctx.fillRect(signX - 6, signY - 14, 10, 1);
+
+    const palletX = 13.4 * TILE_SIZE;
+    const palletY = 19.6 * TILE_SIZE;
+    ctx.fillStyle = '#a16207';
+    ctx.fillRect(palletX - 10, palletY - 4, 20, 7);
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(palletX - 8, palletY - 6, 16, 4);
+    ctx.fillStyle = '#fde68a';
+    ctx.fillRect(palletX - 4, palletY - 7, 6, 2);
+
+    const bramRows = [
+      '..hhhhhh..',
+      '.hssssssh.',
+      '.hsseessh.',
+      '..tttttt..',
+      '.tttttttt.',
+      '.t.tttt.t.',
+      '..b.bb.b..',
+    ];
+    const bram = getCachedPixelSprite('npc_bram', bramRows, {
+      h: '#44403c',
+      s: '#e7c2a4',
+      e: '#1c1917',
+      t: '#78716c',
+      b: '#292524',
+    });
+    ctx.drawImage(bram, 13.2 * TILE_SIZE - 10, 14.6 * TILE_SIZE - 24, 20, 24);
+
+    const logs = getCachedPixelSprite(
+      'prop_woodpile',
+      ['..llllll..', '.lLLLLlL..', 'llLLLLll..', '.lLLLLl...', '..llll....'],
+      { l: '#92400e', L: '#b45309' }
+    );
+    ctx.drawImage(logs, 22.2 * TILE_SIZE, 18.2 * TILE_SIZE - 8, 20, 12);
   }
 }

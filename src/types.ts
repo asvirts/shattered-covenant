@@ -28,6 +28,8 @@ export type TileType =
 
 export type HeroId = 'kaelen' | 'sura' | 'vesper' | 'cassian';
 
+export type HeroPresentation = 'HUMBLE' | 'SHARD';
+
 export interface Stats {
   maxHp: number;
   hp: number;
@@ -141,6 +143,8 @@ export interface Hero {
   origin: string;
   className: string;
   realm: 'DAWN' | 'OBSIDIAN' | 'ASTRAL';
+  /** HUMBLE: ordinary clothes, no Heart-Shard. SHARD: the key has fused; power still has to be earned. */
+  presentation: HeroPresentation;
   recruited: boolean;
   level: number;
   exp: number;
@@ -206,6 +210,8 @@ export interface DialogueLine {
   portraitId: HeroId | 'orin' | 'vane' | 'stone';
   expression?: 'NEUTRAL' | 'DETERMINED' | 'SURPRISED' | 'GRIM' | 'WARM';
   text: string;
+  /** When set on a Kaelen line, updates his field presentation as the line appears. */
+  look?: HeroPresentation;
 }
 
 export interface FieldEnemy {
