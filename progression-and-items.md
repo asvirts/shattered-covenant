@@ -12,6 +12,9 @@ Character growth combines three interlocking systems inspired by *World of Warcr
 
 Every level-up grants **1 Talent Point**. Players can invest deeply into a single specialization to reach its **Capstone Talent** or hybridize across both branches. Respeccing is free at any discovered **Titan Waygate**.
 
+### Skill-List Discipline (Anti-Bloat)
+Each hero is built around **6–10 distinct, evolving abilities**, not a 30-tier ladder of `Fire 1 / Fire 2 / Fire 3` spells where two-thirds of the list is obsolete by mid-game ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/), [r/gamedesign](https://www.reddit.com/r/gamedesign/comments/1s9e2pz/what_makes_a_turnbased_combat_system_actually_fun/)). Upgrades should **change how a skill works**—adding a **Bind**, a status-consumer payoff, an adjacency trigger, or a Stability chip—rather than only adding a flat damage tier. Combat must visibly evolve from Hour 5 to Hour 30; if a hero can only describe 3–4 moves after a full playthrough, the kit is too shallow ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1vjvqjj/why_does_this_sub_hate_sea_of_stars/)).
+
 ### Kaelen Vance — *Runic Mason*
 | Tier | 🛡️ Branch A: Wardstone Bulwark *(Tank / Protection)* | 🔨 Branch B: Faultbreaker *(Bruiser / Stability Shatter)* |
 | :--- | :--- | :--- |
@@ -91,3 +94,15 @@ Each character has **4 Equipment Slots**:
      * ***Core of the Magma Golem*** *(Halls of the First Anvil Drop):* "Every 3rd physical attack unleashes a molten shockwave that chips +1 Stability on all foes."
      * ***Pendulum of the Star-Seer*** *(Star-Glass Nexus Drop):* "Reduces the `INS` cost of all Synergy Combo skills by 25%."
      * ***Master Orin's Mason Compass*** *(Act I Keepsake):* "Striking the Heart-Shard for a Domain Shift grants the wielder a 20% Max HP shield."
+
+---
+
+## 5. Full-Party Progression (No Bench, No Grind)
+
+All four heroes—**Kaelen**, **Sura**, **Vesper**, and **Cassian**—fight in every battle, so there is no bench and no reserve-XP problem ([r/JRPG](https://www.reddit.com/r/JRPG/comments/164h5oa/quality_of_life_features_a_modern_jrpg_absolutely/)). Concretely:
+* **Every living party member gains full XP** from every encounter; no benched character quietly falls behind.
+* **Downed heroes still gain XP**, so a rough boss attempt never creates a leveling debt.
+* **Late recruits are never a catch-up grind:** a hero who joins in Act II starts at the party's current average level, and the first **Titan Waygate** visit after recruitment offers a free Talent respec.
+* **Build experimentation is free:** because nobody is left behind, players are encouraged to respec and try new Glyph/Talent combinations rather than being locked into a safe first build.
+
+> This upholds the fixed four-hero roster decision in [ADR-0002](./docs/adr/0002-fixed-four-hero-party.md).

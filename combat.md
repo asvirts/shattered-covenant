@@ -11,6 +11,16 @@
   * **Field Ambush (Mason Strike):** Striking an enemy on the field before contact initiates battle with **1 Stability segment already cracked** on all enemies and **+15% Domain Gauge** charge.
   * **Post-Battle Recovery:** After each normal battle, party members automatically recover **25% of their max `INS` (Mana)**. Full HP and `INS` restoration occurs at **Titan Waygates**, Camps, and Towns—encouraging players to actively cast Glyph and Class skills in every fight while still valuing dungeon checkpoints.
 
+### No "Spam Attack" Trap: The Attack Economy
+Because normal battles restore only **25% `INS`**, the party can never trivially hoard mana and mash the basic attack through the whole game ([r/JRPG](https://www.reddit.com/r/JRPG/comments/10k2oss/chained_echoes_refilling_my_hpmp_was_great_at/)). To keep every turn a real decision:
+* **Every basic attack is a `Chisel` that builds something:** A standard attack generates **+8% Domain Gauge** and restores **+5% `INS`**, so attacking is never a dead turn—it is the engine that funds the next cast.
+* **`Defend` is a real, character-specific action, not a wasted turn:**
+  * **Kaelen — Brace:** Raises a Basalt Guard, generating +150% Threat and chipping the attacker's Stability on contact.
+  * **Sura — Wind-Read:** Banks a *Counter-Fang* that lashes any enemy who strikes her this round.
+  * **Vesper — Starlight Reserve:** Pre-loads a small Starlight Shield and refunds `INS` at the start of her next turn.
+  * **Cassian — Re-Ink:** Converts the turn into raw `INS` recovery (more than attacking) and pre-applies *Crimson Ink* to his next spell.
+* **Resource pressure exists to make skills feel earned, not to force basic attacks.** `INS` scarcity makes Domain Shifts and big casts matter; it is never tuned so that ~90% of the game is confirm-mashing ([r/gamedesign](https://www.reddit.com/r/gamedesign/comments/1s9e2pz/what_makes_a_turnbased_combat_system_actually_fun/)).
+
 ---
 
 ## 2. The "Chisel & Shift" Timeline (CTB)
@@ -24,7 +34,7 @@ Combat runs on a visible **Conditional Turn-Based (CTB) Timeline Bar** at the to
 
 ### The Stability & "Shattered" Stagger Mechanic
 * Underneath every enemy's HP bar is a **Stability Meter** shown as carved stone runes (e.g., `[ ❖ ❖ ❖ ❖ ]`).
-* **Chipping Stability:** Hitting an enemy's Domain/Elemental weakness, landing critical hits, or using Kaelen's Mason skills chips away Stability segments.
+* **Chipping Stability:** Hitting an enemy's Domain/Elemental weakness, landing critical hits, landing a **Bind**, or using Kaelen's Mason skills chips away Stability segments.
 * **Shattered State:** Reducing Stability to `0` triggers **Shattered**:
   1. Cancels any skill or boss attack the enemy was charging.
   2. Knocks the enemy's turn portrait back on the CTB Timeline.
@@ -75,3 +85,48 @@ Battles begin in a neutral state (or the dungeon's ambient biome). Once at least
 ### Boss Domain Puzzles
 Every major boss has a **Native Domain Affinity** that empowers them until overwritten:
 * *Example:* **Forge-Lord Malakor's Magma Colossus** superheats its armor while in the **Obsidian Reign** domain. Striking the Heart-Shard to shift the arena into **The Astral Wastes** flash-cools its molten plates with starlight frost (exposing its Stability core), while shifting into **The Mythic Dawn** entangles its legs in sun-roots so it cannot charge its arena cleave.
+
+---
+
+## 5. Ailments & Binds: Player-Fair Status Agents
+
+Status effects are a first-class combat pillar—and they are **never wasted knowledge**. The system has two layers, inspired by *Etrian Odyssey* and *Chained Echoes* ([r/JRPG](https://www.reddit.com/r/JRPG/comments/13m93jw/status_effects_yay_or_nay_and_which_jrpg_games/)).
+
+### Layer 1 — Ailments (standard statuses)
+| Ailment | Effect |
+| :--- | :--- |
+| **Poison / Bleed / Burn** | Damage over time, ticking at the start of the target's turn; stacks have separate caps per source. |
+| **Silence** | Blocks spellcasting and channeled/Edict abilities. |
+| **Blind** | Sharply reduces the target's physical accuracy. |
+| **Slow** | Reduces `TMP`, pushing the target further back on the CTB bar after each action. |
+| **Stun** | Skips the target's next turn; the hardest status to land and the shortest-lived. |
+| **Weaken / Vulnerable** | Reduces the target's outgoing damage / increases damage taken by a fixed % (targetable via `Redact`). |
+
+### Layer 2 — Binds (body-part locks)
+Binds shut down a *specific* enemy capability rather than its whole turn, and are the party's primary tool for disarming a boss's worst telegraphed move:
+* **Head Bind:** Seals spellcasting, breath attacks, and roar/channeled abilities.
+* **Arm Bind:** Disables physical strikes and weapon skills (often a boss's single-target execute).
+* **Leg Bind:** Halts charge-up and movement-based moves, prevents evasion, and shoves the target back on the CTB bar.
+* Landing a Bind also chips **Stability** directly, so a well-aimed Bind both disables a mechanic and feeds the **Shattered** burst window.
+
+### The Fairness Rules (non-negotiable)
+1. **No blanket boss immunity.** Every enemy—including every boss—carries numbered per-ailment resistances, shown in its **Enemy Codex** entry and previewed on the skill's target line as an infliction % ([r/JRPG](https://www.reddit.com/r/JRPG/comments/13m93jw/status_effects_yay_or_nay_and_which_jrpg_games/)).
+2. **Deterministic first application.** The first successful attempt to land a *new* ailment on a boss always resolves at 100% (per *Chained Echoes*), so a status build always does something on the turn it is set up.
+3. **Stacking resistance, not walls.** Each subsequent re-application in the same fight adds **+1 turn of resistance** for that ailment, displayed as a small counter—preventing stunlock cheese without ever making the spell worthless.
+4. **Boss durations are capped and legible.** Ailments and Binds last 1–2 turns on bosses, with a visible timer on the portrait.
+5. **Statuses are investments with payoff.** Combo skills consume an active status for burst (a Faultbreaker strike that detonates an active **Bleed**, or an Edict that consumes **Corrosive Ink** stacks), so applying them is action-economy, not busywork ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/)).
+6. **Symmetry.** Buffs and debuffs apply to enemies and the party alike; bosses use the same ailment toolbox the player does.
+7. **Honest feedback.** The battle log distinguishes **MISS** (RNG) from **IMMUNE** (true resistance) so players learn the rules instead of guessing ([r/JRPG](https://www.reddit.com/r/JRPG/comments/164h5oa/quality_of_life_features_a_modern_jrpg_absolutely/)).
+
+---
+
+## 6. Difficulty & Encounter Philosophy
+
+Difficulty is expressed through **enemy tactics and mechanics**, never through inflated HP bars that turn bosses into 40-minute attrition stalls ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/)).
+
+* **Hard Mode changes behavior, not sponges:** enemies gain smarter target priority (focusing the healer, punishing unbuffed states), new phase mechanics, extra telegraphs, and soft turn caps / enrage timers that reward aggressive synergy.
+* **Rules are always visible:** a boss's Telegraphed Intent lines, Domain affinity, and ailment resistances are all readable before you commit a turn.
+* **Party wipes, not protagonist-kills:** the party loses only when **all four heroes** are down. There is no instant game over if Kaelen falls while Vesper still holds a revival item ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/)).
+* **Accessibility first:** timing- and speed-based pressure can always be relaxed via the toggles in [`qol-and-ux.md`](./qol-and-ux.md) (Wait mode, auto-timing, Turbo). Turn-based players are never forced into reflex checks ([r/gamedesign](https://www.reddit.com/r/gamedesign/comments/1s9e2pz/what_makes_a_turnbased_combat_system_actually_fun/)).
+
+> Design rationale for this section is drawn from player interviews in [`research.md`](./research.md).

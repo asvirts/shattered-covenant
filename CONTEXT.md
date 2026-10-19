@@ -66,3 +66,25 @@ _Avoid_: Weapon synthesis, generic anvil upgrade
 **World Phase**:
 One of the three global narrative acts (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`) that governs available Zones, regional NPC/faction states, and the transformation of The Grand Archive into The Spire of the First Word alongside the Tri-Realm Coalition War Camp.
 _Avoid_: World state, chapter, era
+
+### Combat & Battle Systems
+
+**Stability**:
+An enemy's visible carved-rune stagger meter, chipped by weakness hits, critical hits, and Binds, and emptied to trigger *Shattered*.
+_Avoid_: Break gauge, poise, stagger bar
+
+**Shattered**:
+The stagger state an enemy enters when its Stability reaches zero, cancelling its charged action, knocking it back on the CTB Timeline, and multiplying incoming damage until its next turn.
+_Avoid_: Broken, stunned, toppled
+
+**Ailment**:
+A layer-one status effect applied to an ally or enemy that alters its behavior over time (Poison, Bleed, Burn, Silence, Blind, Slow, Stun, Weaken/Vulnerable).
+_Avoid_: Debuff, condition, affliction (when referring specifically to an Ailment)
+
+**Bind**:
+A layer-two status effect that seals one specific body-part capability of an enemy—`Head` (casting/breath), `Arm` (physical strikes), or `Leg` (charge/movement)—without disabling the enemy's whole turn.
+_Avoid_: Part break, limb lock, disable (reserve *break* for Stability)
+
+**Enemy Codex**:
+The in-menu record that reveals an encountered enemy's per-Ailment resistances, Stability segments, and known telegraphed moves.
+_Avoid_: Bestiary, monster log

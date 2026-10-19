@@ -67,3 +67,5 @@ Desktop.ini
 
 # .scratch/ is the issue tracker (see docs/agents/issue-tracker.md and AGENTS.md).
 # Those tickets and maps are project history, not throwaway notes, so they stay tracked.
+.vercel
+.env*

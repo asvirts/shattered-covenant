@@ -10,6 +10,11 @@ All **four main party members** fight together simultaneously on the battlefield
 | **Vesper** | *The Star-Bound Mystic* | The Astral Wastes | Astral Weaver | Floating Astral Orbs & Star-Charts | **Loomkeeper** *(Healer/Shields)* | **Astrolabe Savant** *(Timeline Control)* |
 | **Cassian Thorne** | *The Defector Scribe* | The Obsidian Reign | Inkwright | Aether-Quill, Grimoire & Rapier-Stylus | **Edict Inquisitor** *(Arcane Burst/CC)* | **Blood-Scribe** *(DoTs/Life-Tap)* |
 
+### Ensemble, Not Four Solos
+The fixed four-hero party is a deliberate answer to the "ensemble" fantasy: because every hero is always present, the game invests in **cross-party banter** instead of a bench. Each hero's arc includes scripted party reactions—Vesper quietly correcting Cassian's Imperial diction, Sura baiting Kaelen about masonry, Cassian needling Vesper's fractured memory—so the cast feels like a group rather than four parallel stories ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1edumg2/after_trying_sea_of_stars_i_thought_jrpgs_were/)). Optional camp **Skit** scenes unlock as pairs accumulate shared battles, and key story beats always give every hero a line.
+
+> [ADR-0002](./docs/adr/0002-fixed-four-hero-party.md) records why the roster is fixed at four rather than expandable.
+
 ---
 
 ## 1. Kaelen Vance — *The Faultline Mason*

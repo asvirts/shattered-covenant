@@ -109,3 +109,15 @@ In Act II, none of the three superpowers possess the **Four Great Shards** yet�
 * **Location:** Rises out of the shattered crater of the **Grand Archive** after **High Archon Seraphine Thorne** betrays the party and unites the Four Great Shards.
 * **Structure:** A vertical ascent through three corrupted wings representing the enslaved realms (*The Calcified Canopy*, *The Chained Foundry*, and *The Frozen Stars*), where the **Tri-Realm Coalition** allies you rallied across the continent hold off Seraphine's armies to clear your path to the summit.
 * **Final Boss:** **High Archon Seraphine, Avatar of the New Covenant** — A multi-phase battle where Seraphine attempts to overwrite the combat rules themselves with Divine Edicts, culminating in Kaelen using the **Heart-Shard Gauntlet** to shatter the Pillar forever.
+
+---
+
+## 6. Dungeon & Encounter Design Rules
+
+These guardrails exist so that exploration stays a reward rather than friction, responding directly to player feedback in [`research.md`](./research.md):
+
+* **Puzzle rooms are always encounter-free.** No enemy—field or ambush—spawns inside a room containing a Wardstone puzzle, lever, or traversal challenge. Players must never be interrupted while they stop to *think* ([r/JRPG](https://www.reddit.com/r/JRPG/comments/14a9jp1/turn_based_jrpg_enthusiasts_what_are_your_main/)).
+* **Every dungeon carries at least one Wardstone Attunement puzzle** plus one non-combat traversal beat (crane lift, sun-vine bridge, cooled lava stair, gravity-flip platform), echoing the environmental tools of *Lufia II* and *Golden Sun* rather than flat corridors ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1vjvqjj/why_does_this_sub_hate_sea_of_stars/)).
+* **Only visible, avoidable enemies.** Dungeons never use blind random encounters; patrol routes are readable, and outleveled trash flees or offers an auto-resolve (see [`qol-and-ux.md`](./qol-and-ux.md)).
+* **A retry Waygate or camp sits immediately before every boss arena**, so a wipe never forces a full dungeon re-clear plus an unskippable cutscene ([r/JRPG](https://www.reddit.com/r/JRPG/comments/164h5oa/quality_of_life_features_a_modern_jrpg_absolutely/)).
+* **No permanently missable dungeon content.** Unique weapons, lore tablets, and Glyphs are never hard-locked behind a one-time opening order; if a chest becomes unreachable, its contents relocate to the **Hall of the Rubbings** at the Grand Archive after the dungeon is cleared ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/), [r/JRPG](https://www.reddit.com/r/JRPG/comments/1vjvqjj/why_does_this_sub_hate_sea_of_stars/)).

@@ -1,0 +1,5 @@
+# Player-Fair Status Agents: No Blanket Boss Immunity
+
+Bosses and enemies are **never blanket-immune** to Ailments or Binds. Every enemy carries numbered, visible per-status resistances; the first application of a *new* status on a boss is deterministic (100%), and each re-application adds **stacking resistance** rather than a hard wall, with boss durations capped at 1–2 turns. Player research identifies "learning dozens of status spells that no boss can be affected by" as the single most-cited combat frustration ([r/JRPG](https://www.reddit.com/r/JRPG/comments/13m93jw/status_effects_yay_or_nay_and_which_jrpg_games/)); the design deliberately trades the classic immunity crutch for scaling resistance, which prevents stunlock without ever invalidating a status build.
+
+**Considered options:** blanket boss immunity with a small per-boss exception list (rejected—repeats the exact frustration players named), and full-duration statuses with no resistance scaling (rejected—enables permanent stunlock). Rules live in [`combat.md`](../../combat.md) §5.

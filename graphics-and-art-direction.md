@@ -62,6 +62,12 @@
   * **Left Side:** All **4 Party Members** arranged in a clean staggered diagonal formation with unobstructed sightlines for animations and protective barriers.
   * **Right Side:** Enemy formation or colossal Titan boss sprite.
 
+### Combat Readability & Speed
+* **Input queueing:** While the previous character's animation plays, the player can already queue the next hero's command; the cursor never waits for a spell to finish.
+* **Turbo:** A built-in **2× / 4×** battle-speed toggle is available from the pause menu and persists across sessions ([r/JRPG](https://www.reddit.com/r/JRPG/comments/164h5oa/quality_of_life_features_a_modern_jrpg_absolutely/)).
+* **Skip what you've seen:** spell animations are skippable after their first viewing, and enemy death dissolves never block input.
+* **Transitions:** the 0.5-second rune-shatter transition doubles as the loading veil—no camera pans or 10-second battle-intro swirls ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/)).
+
 ### "Strike the Stone" — Full Arena Transformation
 When a party member activates a **Ley-Line Domain Shift**, they strike the Heart-Shard, sending a shockwave across the screen that shatters the Battle Stage background and floor into the chosen domain:
 
@@ -85,3 +91,12 @@ When a party member activates a **Ley-Line Domain Shift**, they strike the Heart
 * **Readable Combat Telegraphs:**
   * **Enemy Stability Meter:** Displayed directly beneath each enemy as physical stone rune-blocks (`[ ❖ ❖ ❖ ❖ ]`) that visibly crack and shatter into dust when broken.
   * **Threat & Intent Lines:** Curved pixel-shader arc lines briefly pulse between an enemy's portrait and their intended target (or across the whole party for AoE cleaves) when hovered or when a boss begins charging an attack.
+
+### Menus, Logs & Recaps
+* **Transparent tooltips:** every skill, Glyph, and stat exposes exact multipliers, damage type, infliction %, and a plain-language explanation—viewable before committing a turn ([r/JRPG](https://www.reddit.com/r/JRPG/comments/164h5oa/quality_of_life_features_a_modern_jrpg_absolutely/)).
+* **Dialogue log:** a scrollable backlog of recent dialogue, reachable from the pause menu.
+* **Story So Far:** on load, a one-screen journal recap of the current objective and recent beats.
+* **Pause-first cutscenes:** Start pauses rather than skips; skipping requires a second confirm.
+* **Face-button command mapping:** the four main battle command categories map to the controller's face buttons for instant, eyes-free input flow ([r/JRPG](https://www.reddit.com/r/JRPG/comments/1czqnwg/what_mechanics_do_you_like_to_see_in_a_turnbased/)).
+
+> The full accessibility and quality-of-life baseline lives in [`qol-and-ux.md`](./qol-and-ux.md).

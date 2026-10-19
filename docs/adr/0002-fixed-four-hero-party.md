@@ -1,0 +1,5 @@
+# Fixed Four-Hero Party Instead of an Expandable Roster
+
+*Shattered Covenant* fields a permanent four-hero party—**Kaelen**, **Sura**, **Vesper**, and **Cassian**—who all fight in every battle, with no bench and no reserve-XP system. Player research prizes "ensemble party management" and shared reserve XP, but the underlying complaint is the grind of catching up underleveled benched characters ([r/JRPG](https://www.reddit.com/r/JRPG/comments/164h5oa/quality_of_life_features_a_modern_jrpg_absolutely/)); a fixed party removes that failure mode entirely while keeping every hero's arc, Glyph build, and Dual Tech always live in combat. The ensemble fantasy is delivered through **cross-party banter and skits** rather than a mutable roster.
+
+**Considered options:** an expandable 6–8 hero roster with reserve XP (rejected—would rework the CTB timeline, Dual Tech adjacency, and all four personal arcs for marginal gain), and a fixed four plus rotating guest allies (deferred—could be layered on later without changing the core).
