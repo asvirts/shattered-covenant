@@ -187,6 +187,7 @@ export class QuarryMap {
     }
   }
 
+  /** Builds the quarry and Oakhaven terrain before shardfall, including cottages and the guild loft. */
   private buildTiles(): void {
     for (let r = 0; r < MAP_ROWS; r++) {
       this.tiles[r] = [];
@@ -267,6 +268,7 @@ export class QuarryMap {
     this.tiles[37][9] = 'LANE';
   }
 
+  /** Marks the shard as fallen and carves the impact crater once; repeated calls have no effect. */
   public applyShardfall(): void {
     if (this.shardFallen) return;
     this.shardFallen = true;
@@ -303,6 +305,7 @@ export class QuarryMap {
     }
   }
 
+  /** Checks whether the player’s collision footprint avoids map boundaries and impassable terrain. */
   public isWalkablePixel(px: number, py: number): boolean {
     const margin = 6;
     const points = [
@@ -323,6 +326,7 @@ export class QuarryMap {
     return true;
   }
 
+  /** Returns the closest available interaction within reach, using recruitment and shardfall state. */
   public getNearestTrigger(heroes: Record<HeroId, Hero>): InteractableTrigger | null {
     const triggers: InteractableTrigger[] = [
       {
@@ -458,6 +462,7 @@ export class QuarryMap {
     return best;
   }
 
+  /** Draws Oakhaven’s well, sign, pallet, Bram, woodpile, and stepped chimney smoke. */
   private drawVillageProps(ctx: CanvasRenderingContext2D, time: number): void {
     const wellX = 15.2 * TILE_SIZE;
     const wellY = 35.4 * TILE_SIZE;
@@ -524,6 +529,7 @@ export class QuarryMap {
     ctx.fillRect(14.2 * TILE_SIZE, 30 * TILE_SIZE - 12 - puff, 3, 2);
   }
 
+  /** Draws the visible map, characters, and effects for the current shardfall state; returns camera offsets. */
   public render(
     ctx: CanvasRenderingContext2D,
     viewportW: number,

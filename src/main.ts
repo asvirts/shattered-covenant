@@ -40,6 +40,7 @@ class ShatteredCovenantGame {
   // frame removes the element between mousedown and mouseup, so the click never lands.
   private commandPanelSignature = '';
 
+  /** Initializes the game, opens the guild-loft wake dialogue, and starts the animation loop. */
   constructor() {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     this.ctx = this.canvas.getContext('2d')!;
@@ -325,6 +326,7 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Handles the nearest village or quarry interaction, including recruitment and chest rewards. */
   private triggerNearestInteraction(): void {
     const trig = this.map.getNearestTrigger(this.heroes);
     if (!trig) return;
@@ -439,6 +441,7 @@ class ShatteredCovenantGame {
     this.renderCurrentDialogueLine();
   }
 
+  /** Selects Kaelen’s portrait from his weapon tier and Heart-Shard presentation. */
   private kaelenPortraitVariant(): 'humble' | 'shard' | 'heroic' {
     const kaelen = this.heroes.kaelen;
     if (kaelen.weaponTierIndex >= 1) return 'heroic';
@@ -446,6 +449,7 @@ class ShatteredCovenantGame {
     return 'humble';
   }
 
+  /** Applies the current dialogue line’s presentation changes and renders its portrait and text. */
   private renderCurrentDialogueLine(): void {
     if (!this.activeDialogue) return;
     const line = this.activeDialogue[this.dialogueIndex];
@@ -469,6 +473,7 @@ class ShatteredCovenantGame {
     document.getElementById('dialogue-step-indicator')!.textContent = `${this.dialogueIndex + 1} / ${this.activeDialogue.length}`;
   }
 
+  /** Advances the dialogue or closes it, refreshes the HUD, and invokes its completion callback. */
   private advanceDialogue(): void {
     if (!this.activeDialogue) return;
     sound.playMenuTick();
@@ -506,6 +511,7 @@ class ShatteredCovenantGame {
     this.renderBattleHUD();
   }
 
+  /** Applies battle rewards or defeat recovery, then restores exploration and any victory dialogue. */
   private finishBattle(): void {
     sound.playMenuConfirm();
     const won = this.battle.victoryState === 'WON';
@@ -551,6 +557,7 @@ class ShatteredCovenantGame {
     shell.className = `domain-${this.battle.activeDomain.toLowerCase()}`;
   }
 
+  /** Refreshes Heart-Ore, the current zone, the progression objective, and the party strip. */
   public updateExploreHUD(): void {
     document.getElementById('ore-count')!.textContent = String(this.heartOre);
 
@@ -590,6 +597,7 @@ class ShatteredCovenantGame {
     this.renderPartyStrip();
   }
 
+  /** Rebuilds clickable status cards for recruited heroes with HP, INS, and available Talent points. */
   private renderPartyStrip(): void {
     // Render Mini Party Strip
     const strip = document.getElementById('party-mini-strip')!;
@@ -818,6 +826,7 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Renders the selected hero’s portrait, stats, and active talents, glyphs, or weapons tab. */
   private renderPartyModal(): void {
     const hero = this.heroes[this.selectedMenuHeroId];
 
@@ -1058,6 +1067,7 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Updates exploration movement and encounters, triggering shardfall dialogue on quarry arrival. */
   private updateExploration(dt: number): void {
     if (this.activeDialogue || this.partyMenuOpen || this.battle.active) return;
 
@@ -1168,6 +1178,7 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Advances and renders the active game mode, refreshes its HUD, and schedules the next frame. */
   private loop(now: number): void {
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;

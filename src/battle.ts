@@ -633,6 +633,7 @@ export class BattleEngine {
     }, 480);
   }
 
+  /** Reduces enemy Stability and applies shatter rewards, including shielding an equipped, living Kaelen. */
   private damageStability(enemy: Enemy, brkAmt: number, x: number, y: number): void {
     if (enemy.shattered || brkAmt <= 0 || enemy.stability <= 0) return;
 

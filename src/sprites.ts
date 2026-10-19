@@ -60,6 +60,7 @@ export function hexToRgba(hex: string, alpha: number): string {
 
 type PoseType = 'IDLE' | 'WALK' | 'ATTACK' | 'CAST' | 'HIT';
 
+/** Returns a cached pixel sprite frame for the hero’s pose, weapon tier, and optional apprentice shard. */
 function getHeroFrameCanvas(
   heroId: HeroId,
   pose: PoseType,
@@ -588,6 +589,7 @@ function getEnemyFrameCanvas(
   return canvas;
 }
 
+/** Draws a hero’s animated sprite with facing, weapon appearance, and Heart-Shard presentation. */
 export function drawHeroSprite(
   ctx: CanvasRenderingContext2D,
   hero: Hero,
@@ -787,6 +789,7 @@ export function drawBattleVfx(
 // SEA OF STARS STYLE 48x48 PIXEL BUST PORTRAITS (SCALED 2X TO 96x96)
 // ---------------------------------------------------------------------------
 
+/** Draws a cached animated bust; Kaelen’s variant selects his humble, shard, or heroic appearance. */
 export function drawPortrait(
   canvas: HTMLCanvasElement,
   portraitId: HeroId | 'orin' | 'vane' | 'stone',
