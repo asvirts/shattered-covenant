@@ -66,9 +66,10 @@ function getHeroFrameCanvas(
   frameIdx: number,
   weaponTierIndex: number,
   weaponColor: string,
-  glowColor: string
+  glowColor: string,
+  showShard = false
 ): HTMLCanvasElement {
-  const key = `sos_hero_${heroId}_${pose}_${frameIdx}_w${weaponTierIndex}`;
+  const key = `sos_hero_${heroId}_${pose}_${frameIdx}_w${weaponTierIndex}_s${showShard ? 1 : 0}`;
   const cached = frameCache.get(key);
   if (cached) return cached;
 
@@ -123,7 +124,50 @@ function getHeroFrameCanvas(
     rightLegX = 25;
   }
 
-  if (heroId === 'kaelen') {
+  if (heroId === 'kaelen' && weaponTierIndex < 1) {
+    // Apprentice mason: linen, rope belt, scuffed boots, a nicked chisel. No pauldron, scarf, or relic glow.
+    px(leftLegX, leftLegY, 4, 6, '#57534e');
+    px(leftLegX, leftLegY + 4, 5, 3, '#292524');
+    px(rightLegX, rightLegY, 4, 6, '#44403c');
+    px(rightLegX, rightLegY + 4, 5, 3, '#1c1917');
+
+    px(15, 19 + bodyY, 12, 13, '#d6d3d1');
+    px(16, 20 + bodyY, 10, 9, '#e7e5e4');
+    px(15, 18 + bodyY, 12, 2, '#a8a29e');
+    px(15, 27 + bodyY, 12, 3, '#78350f');
+    px(20, 28 + bodyY, 2, 2, '#a8a29e');
+
+    const headY = 8 + bodyY;
+    px(15, headY + 3, 12, 9, '#cf8d6c');
+    px(16, headY + 2, 11, 8, '#f5cba7');
+    px(17, headY + 2, 8, 4, '#ffe0c8');
+    px(20, headY + 5, 2, 2, '#1e1b4b');
+    px(21, headY + 5, 1, 2, '#f59e0b');
+    px(25, headY + 5, 2, 2, '#1e1b4b');
+    px(26, headY + 5, 1, 2, '#f59e0b');
+    px(14, headY, 14, 4, '#292524');
+    px(15, headY - 1, 10, 3, '#44403c');
+    px(14, headY + 3, 3, 4, '#292524');
+    px(24, headY + 2, 3, 3, '#292524');
+
+    const armY = 22 + bodyY + (pose === 'CAST' ? -3 : 0);
+    px(12, armY, 5, 4, '#92400e');
+    px(13, armY + 1, 3, 2, '#b45309');
+    if (showShard) {
+      px(14, armY + 1, 2, 2, '#c084fc');
+    }
+
+    if (pose === 'ATTACK') {
+      px(24, 22 + bodyY, 12, 2, '#78350f');
+      px(34, 18 + bodyY, 5, 8, '#6b7280');
+      px(35, 19 + bodyY, 3, 5, '#9ca3af');
+    } else {
+      const wY = 14 + bodyY;
+      px(26, wY + 4, 2, 12, '#78350f');
+      px(23, wY + 1, 8, 5, '#4b5563');
+      px(24, wY + 2, 6, 3, weaponColor);
+    }
+  } else if (heroId === 'kaelen') {
     // 1. Billowing Crimson Scarf Tail (behind shoulder, 4 distinct pixel frames)
     const scarfY = 18 + bodyY;
     px(9, scarfY + (frameIdx % 2), 6, 4, '#991b1b');
@@ -592,13 +636,15 @@ export function drawHeroSprite(
   }
 
   const weaponTier = hero.weaponTiers[hero.weaponTierIndex] || hero.weaponTiers[0];
+  const showShard = hero.id === 'kaelen' && hero.presentation === 'SHARD' && hero.weaponTierIndex < 1;
   const frameCanvas = getHeroFrameCanvas(
     hero.id,
     pose,
     frameIdx,
     hero.weaponTierIndex,
     weaponTier.visualColor,
-    weaponTier.glowColor
+    weaponTier.glowColor,
+    showShard
   );
 
   // Draw at exact 1:1 native pixel resolution!
@@ -745,7 +791,8 @@ export function drawPortrait(
   canvas: HTMLCanvasElement,
   portraitId: HeroId | 'orin' | 'vane' | 'stone',
   expression: 'NEUTRAL' | 'DETERMINED' | 'SURPRISED' | 'GRIM' | 'WARM' = 'NEUTRAL',
-  time = performance.now()
+  time = performance.now(),
+  variant: 'humble' | 'shard' | 'heroic' = 'heroic'
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -755,7 +802,7 @@ export function drawPortrait(
 
   // Stepped 2-frame breathing on portraits (every 450ms)
   const breathStep = Math.floor(time / 450) % 2;
-  const cacheKey = `sos_portrait_${portraitId}_${expression}_${breathStep}`;
+  const cacheKey = `sos_portrait_${portraitId}_${expression}_${breathStep}_${variant}`;
   let offscreen = frameCache.get(cacheKey);
 
   if (!offscreen) {
@@ -770,7 +817,33 @@ export function drawPortrait(
       octx.fillRect(x, y + breathStep, w, h);
     };
 
-    if (portraitId === 'kaelen') {
+    if (portraitId === 'kaelen' && variant !== 'heroic') {
+      px(14, 6, 20, 12, '#3f3a36');
+      px(16, 5, 16, 6, '#57534e');
+      px(15, 13, 18, 16, '#cf8d6c');
+      px(16, 12, 16, 14, '#f5cba7');
+      px(18, 13, 8, 4, '#ffe0c8');
+      px(14, 10, 4, 8, '#3f3a36');
+      px(19, 9, 5, 4, '#57534e');
+      px(28, 10, 4, 6, '#3f3a36');
+      px(17, 15, 5, 1, '#1e1b24');
+      px(26, 15, 5, 1, '#1e1b24');
+      px(18, 17, 4, 3, '#ffffff');
+      px(26, 17, 4, 3, '#ffffff');
+      px(19, 17, 2, 3, '#f59e0b');
+      px(27, 17, 2, 3, '#f59e0b');
+      px(20, 18, 1, 2, '#161020');
+      px(28, 18, 1, 2, '#161020');
+      px(21, 24, 5, expression === 'SURPRISED' ? 2 : 1, '#78350f');
+      px(10, 31, 28, 16, '#d6d3d1');
+      px(12, 32, 24, 12, '#a8a29e');
+      px(16, 30, 16, 3, '#78716c');
+      px(32, 34, 8, 8, '#92400e');
+      px(33, 35, 6, 5, '#b45309');
+      if (variant === 'shard') {
+        px(35, 36, 3, 3, '#c084fc');
+      }
+    } else if (portraitId === 'kaelen') {
       // Spiky Sea-of-Stars Hair Back & Crown
       px(12, 5, 24, 15, '#1e1b24');
       px(14, 3, 20, 9, '#2e2938');

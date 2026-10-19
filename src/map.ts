@@ -12,10 +12,13 @@ export type TileType =
   | 'BASALT_BRIDGE'
   | 'ASTRAL_BRIDGE'
   | 'STAIRS'
-  | 'CRATER';
+  | 'CRATER'
+  | 'LANE'
+  | 'BOARDS'
+  | 'TIMBER';
 
 export const MAP_COLS = 38;
-export const MAP_ROWS = 28;
+export const MAP_ROWS = 46;
 export const TILE_SIZE = 24;
 
 export interface InteractableTrigger {
@@ -27,9 +30,12 @@ export interface InteractableTrigger {
     | 'RECRUIT_VESPER'
     | 'WARDSTONE'
     | 'WAYGATE'
-    | 'ANVIL'
-    | 'CHEST'
-    | 'BOSS';
+  | 'ANVIL'
+  | 'CHEST'
+  | 'BOSS'
+  | 'PALLET'
+  | 'VILLAGE_SIGN'
+  | 'VILLAGE_NPC';
   label: string;
   promptText: string;
   x: number;
@@ -72,9 +78,11 @@ const CHEST_ROWS = [
 
 export class QuarryMap {
   public tiles: TileType[][] = [];
-  public playerX = 9 * TILE_SIZE;
-  public playerY = 22 * TILE_SIZE;
+  public playerX = 7.4 * TILE_SIZE;
+  public playerY = 41 * TILE_SIZE;
   public playerFacing: 'LEFT' | 'RIGHT' = 'RIGHT';
+  /** False until the player walks up from Oakhaven and the shard falls. */
+  public shardFallen = false;
   public isPlayerMoving = false;
   public swingTimer = 0;
   public dustParticles: { x: number; y: number; timer: number }[] = [];
@@ -124,7 +132,7 @@ export class QuarryMap {
       homeY: 23 * TILE_SIZE,
       patrolRadius: 36,
       dir: 'LEFT',
-      encounterIds: ['kobold_scavenger', 'kobold_scavenger'],
+      encounterIds: ['kobold_scavenger'],
       defeated: false,
       stunTimer: 0,
     },
@@ -203,9 +211,8 @@ export class QuarryMap {
       }
     };
 
-    // 1. South-West Quarry Floor (Start Area: Heart-Shard Crater & Master Orin)
+    // 1. South-West Quarry Floor (Master Orin waits here; the crater appears when the shard falls)
     carveRect(4, 19, 13, 24, 'FLOOR');
-    carveRect(6, 20, 7, 21, 'CRATER');
 
     // Eastern Chasm between Start Area and Sura's Sky-Skiff
     carveRect(14, 19, 17, 24, 'CHASM');
@@ -232,6 +239,45 @@ export class QuarryMap {
     // 5. North Crater Summit (Boss Arena: Inquisitor Vane & Siege-Golem)
     carveRect(18, 5, 20, 6, 'STAIRS');
     carveRect(15, 2, 23, 5, 'FLOOR');
+
+    // 6. Oakhaven — humble frontier hamlet south of the quarry cut
+    carveRect(2, 28, 25, 44, 'LANE');
+    carveRect(7, 24, 11, 28, 'STAIRS');
+
+    // West cottage
+    carveRect(3, 30, 6, 33, 'TIMBER');
+    carveRect(4, 31, 5, 32, 'BOARDS');
+    this.tiles[33][5] = 'LANE';
+
+    // East cottage
+    carveRect(12, 30, 16, 33, 'TIMBER');
+    carveRect(13, 31, 15, 32, 'BOARDS');
+    this.tiles[33][14] = 'LANE';
+
+    // Woodshed on the east lane, so the hamlet fills the opening view
+    carveRect(19, 31, 23, 34, 'TIMBER');
+    carveRect(20, 32, 22, 33, 'BOARDS');
+    this.tiles[34][21] = 'LANE';
+
+    // Masons' Guild loft, where Kaelen wakes
+    carveRect(4, 37, 13, 43, 'TIMBER');
+    carveRect(5, 38, 12, 42, 'BOARDS');
+    this.tiles[37][7] = 'LANE';
+    this.tiles[37][8] = 'LANE';
+    this.tiles[37][9] = 'LANE';
+  }
+
+  public applyShardfall(): void {
+    if (this.shardFallen) return;
+    this.shardFallen = true;
+    for (const [c, r] of [
+      [6, 20],
+      [7, 20],
+      [6, 21],
+      [7, 21],
+    ]) {
+      this.tiles[r][c] = 'CRATER';
+    }
   }
 
   public attuneWardstone(id: string): void {
@@ -270,7 +316,7 @@ export class QuarryMap {
       const r = Math.floor(y / TILE_SIZE);
       if (r < 0 || r >= MAP_ROWS || c < 0 || c >= MAP_COLS) return false;
       const t = this.tiles[r][c];
-      if (t === 'WALL' || t === 'CHASM' || t === 'LAVA') {
+      if (t === 'WALL' || t === 'CHASM' || t === 'LAVA' || t === 'TIMBER') {
         return false;
       }
     }
@@ -280,14 +326,41 @@ export class QuarryMap {
   public getNearestTrigger(heroes: Record<HeroId, Hero>): InteractableTrigger | null {
     const triggers: InteractableTrigger[] = [
       {
+        id: 'pallet',
+        type: 'PALLET',
+        label: 'Straw Pallet',
+        promptText: '[Space / Click] Look at the straw pallet',
+        x: 7.4 * TILE_SIZE,
+        y: 41 * TILE_SIZE,
+      },
+      {
+        id: 'sign',
+        type: 'VILLAGE_SIGN',
+        label: 'Hamlet Sign',
+        promptText: '[Space / Click] Read the road sign',
+        x: 6.5 * TILE_SIZE,
+        y: 29.2 * TILE_SIZE,
+      },
+      {
+        id: 'bram',
+        type: 'VILLAGE_NPC',
+        label: 'Bram',
+        promptText: '[Space / Click] Speak with Bram',
+        x: 5.2 * TILE_SIZE,
+        y: 35.2 * TILE_SIZE,
+      },
+    ];
+
+    if (this.shardFallen) {
+      triggers.push({
         id: 'orin',
         type: 'NPC_ORIN',
         label: 'Master Orin (Petrified)',
         promptText: '[Space / Click] Inspect Petrified Master Orin',
         x: 7.5 * TILE_SIZE,
         y: 20.8 * TILE_SIZE,
-      },
-    ];
+      });
+    }
 
     for (const ws of this.wardstones) {
       if (ws.attunedBy === 'NONE') {
@@ -383,6 +456,72 @@ export class QuarryMap {
       }
     }
     return best;
+  }
+
+  private drawVillageProps(ctx: CanvasRenderingContext2D, time: number): void {
+    const wellX = 15.2 * TILE_SIZE;
+    const wellY = 35.4 * TILE_SIZE;
+    ctx.fillStyle = '#44403c';
+    ctx.fillRect(wellX - 7, wellY - 6, 14, 10);
+    ctx.fillStyle = '#1c1917';
+    ctx.fillRect(wellX - 5, wellY - 4, 10, 6);
+    ctx.fillStyle = '#0e7490';
+    ctx.fillRect(wellX - 3, wellY - 2, 6, 3);
+    ctx.fillStyle = '#a8a29e';
+    ctx.fillRect(wellX - 8, wellY - 8, 16, 2);
+
+    const signX = 6.5 * TILE_SIZE;
+    const signY = 29.2 * TILE_SIZE;
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(signX - 1, signY - 14, 2, 14);
+    ctx.fillStyle = '#d6d3d1';
+    ctx.fillRect(signX - 8, signY - 16, 16, 7);
+    ctx.fillStyle = '#44403c';
+    ctx.fillRect(signX - 6, signY - 14, 10, 1);
+
+    const palletX = 7.4 * TILE_SIZE;
+    const palletY = 41.2 * TILE_SIZE;
+    ctx.fillStyle = '#a16207';
+    ctx.fillRect(palletX - 10, palletY - 4, 20, 7);
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(palletX - 8, palletY - 6, 16, 4);
+    ctx.fillStyle = '#fde68a';
+    ctx.fillRect(palletX - 4, palletY - 7, 6, 2);
+
+    const bramRows = [
+      '..hhhhhh..',
+      '.hssssssh.',
+      '.hsseessh.',
+      '..tttttt..',
+      '.tttttttt.',
+      '.t.tttt.t.',
+      '..b.bb.b..',
+    ];
+    const bram = getCachedPixelSprite('npc_bram', bramRows, {
+      h: '#44403c',
+      s: '#e7c2a4',
+      e: '#1c1917',
+      t: '#78716c',
+      b: '#292524',
+    });
+    ctx.drawImage(bram, 5.2 * TILE_SIZE - 10, 35.2 * TILE_SIZE - 24, 20, 24);
+
+    const logs = getCachedPixelSprite('prop_woodpile', [
+      '..llllll..',
+      '.lLLLLlL..',
+      'llLLLLll..',
+      '.lLLLLl...',
+      '..llll....',
+    ], {
+      l: '#92400e',
+      L: '#b45309',
+    });
+    ctx.drawImage(logs, 20.4 * TILE_SIZE, 36 * TILE_SIZE - 8, 20, 12);
+
+    const puff = Math.floor(time / 280) % 3;
+    ctx.fillStyle = 'rgba(214, 211, 209, 0.55)';
+    ctx.fillRect(4.5 * TILE_SIZE, 30 * TILE_SIZE - 10 - puff, 3, 2);
+    ctx.fillRect(14.2 * TILE_SIZE, 30 * TILE_SIZE - 12 - puff, 3, 2);
   }
 
   public render(
@@ -505,13 +644,73 @@ export class QuarryMap {
           ctx.fillRect(tx + 7, ty + 7, 10, 10);
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(tx + 10, ty + 10, 4, 4);
+        } else if (t === 'LANE') {
+          ctx.fillStyle = (r + c) % 2 === 0 ? '#6b4f3a' : '#7c5b44';
+          ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
+          ctx.fillStyle = '#8a6a4e';
+          ctx.fillRect(tx + 2, ty + 3, 4, 2);
+          if ((r * 5 + c * 3) % 4 === 0) {
+            ctx.fillStyle = '#3f6212';
+            ctx.fillRect(tx + 15, ty + 14, 5, 3);
+            ctx.fillStyle = '#4d7c0f';
+            ctx.fillRect(tx + 16, ty + 13, 2, 2);
+          }
+        } else if (t === 'BOARDS') {
+          ctx.fillStyle = '#8a5a32';
+          ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
+          ctx.fillStyle = '#6b4423';
+          for (let p = 4; p < TILE_SIZE; p += 6) {
+            ctx.fillRect(tx, ty + p, TILE_SIZE, 1);
+          }
+          ctx.fillStyle = '#a36b3c';
+          ctx.fillRect(tx + 3, ty + 2, 8, 2);
+        } else if (t === 'TIMBER') {
+          ctx.fillStyle = '#3f2a1e';
+          ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
+          ctx.fillStyle = '#5c3d28';
+          ctx.fillRect(tx + 2, ty + 2, 4, TILE_SIZE - 4);
+          ctx.fillRect(tx + 10, ty + 2, 4, TILE_SIZE - 4);
+          ctx.fillRect(tx + 18, ty + 2, 4, TILE_SIZE - 4);
+          const southOpen =
+            r + 1 < MAP_ROWS &&
+            this.tiles[r + 1][c] !== 'TIMBER' &&
+            this.tiles[r + 1][c] !== 'WALL';
+          if (southOpen) {
+            ctx.fillStyle = '#2a1b14';
+            ctx.fillRect(tx, ty + TILE_SIZE - 6, TILE_SIZE, 6);
+            ctx.fillStyle = '#7c4a2d';
+            ctx.fillRect(tx, ty, TILE_SIZE, 3);
+          }
         }
       }
     }
 
-    // 2. Draw Petrified Master Orin inside Faceted Amber-Violet Crystal
+    this.drawVillageProps(ctx, time);
+
+    // 2. Master Orin — alive at the boundary stone until the shard falls
     const orinX = 7.5 * TILE_SIZE;
     const orinY = 20.8 * TILE_SIZE;
+    if (!this.shardFallen) {
+      const liveRows = [
+        '...hhhhhh...',
+        '..hssssssh..',
+        '..hsseessh..',
+        '..hssssssh..',
+        '...tttttt...',
+        '..tttttttt..',
+        '..t.tttt.t..',
+        '..b.b..b.b..',
+        '...b....b...',
+      ];
+      const liveOrin = getCachedPixelSprite('npc_orin_living', liveRows, {
+        h: '#d6d3d1',
+        s: '#e7c2a4',
+        e: '#1c1917',
+        t: '#78716c',
+        b: '#44403c',
+      });
+      ctx.drawImage(liveOrin, orinX - 12, orinY - 28, 24, 28);
+    } else {
     const orinRows = [
       '....CCCCCC....',
       '..CCccccccCC..',
@@ -535,6 +734,7 @@ export class QuarryMap {
     });
     ctx.drawImage(orinSprite, orinX - 14, orinY - 30, 28, 30);
     drawPointLight(ctx, orinX, orinY - 14, 62, '#f59e0b', 0.36);
+    }
 
     // 3. Draw Outlined Pixel Wardstones
     for (const ws of this.wardstones) {
@@ -660,7 +860,13 @@ export class QuarryMap {
       1,
       this.isPlayerMoving
     );
-    drawPointLight(ctx, this.playerX, this.playerY - 16, 68, '#f59e0b', 0.28);
+    const kaelen = heroes.kaelen;
+    if (kaelen.weaponTierIndex > 0) {
+      const glow = kaelen.weaponTiers[kaelen.weaponTierIndex]?.glowColor ?? '#f59e0b';
+      drawPointLight(ctx, this.playerX, this.playerY - 16, 68, glow, 0.28);
+    } else if (kaelen.presentation === 'SHARD') {
+      drawPointLight(ctx, this.playerX, this.playerY - 14, 18, '#c084fc', 0.14);
+    }
 
     if (this.swingTimer > 0) {
       ctx.save();

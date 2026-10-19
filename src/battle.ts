@@ -646,9 +646,9 @@ export class BattleEngine {
       this.spawnFloat('SHATTERED! (1.5x DMG)', x, y - 42, '#fde047', true);
       this.log(`${enemy.name}'s Stability is SHATTERED! Delayed on timeline & takes 1.5x damage!`);
 
-      // Trigger Kaelen's Master Orin Plumb-Line trinket
+      // Master Orin's Plumb-Line is a later keepsake, not part of the opening kit.
       const kaelen = this.heroes.find((h) => h.id === 'kaelen' && h.stats.hp > 0);
-      if (kaelen) {
+      if (kaelen?.trinkets.some((t) => t.id === 'trinket_orin_chisel')) {
         kaelen.shieldHp += 25;
       }
     }

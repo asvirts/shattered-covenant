@@ -2,7 +2,9 @@ import {
   ALL_GLYPHS,
   DIALOGUES,
   DUAL_TECHS,
+  STARTER_TRINKETS,
   createInitialHeroes,
+  grantHeartShardKit,
 } from './data';
 import { sound } from './audio';
 import { BattleEngine } from './battle';
@@ -17,7 +19,8 @@ class ShatteredCovenantGame {
   private map: QuarryMap;
   private battle: BattleEngine;
 
-  public heartOre = 2;
+  public heartOre = 0;
+  private shardEventQueued = false;
   private keys = new Set<string>();
   private lastTime = performance.now();
 
@@ -51,8 +54,8 @@ class ShatteredCovenantGame {
     this.bindUIButtons();
     this.updateExploreHUD();
 
-    // Trigger Act I Opening Cutscene on start
-    this.startDialogue(DIALOGUES.intro);
+    // Wake in Oakhaven. The quarry cataclysm plays only after he walks up to it.
+    this.startDialogue(DIALOGUES.wake);
 
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -328,7 +331,13 @@ class ShatteredCovenantGame {
 
     sound.playMenuConfirm();
 
-    if (trig.type === 'NPC_ORIN') {
+    if (trig.type === 'PALLET') {
+      this.startDialogue(DIALOGUES.pallet);
+    } else if (trig.type === 'VILLAGE_SIGN') {
+      this.startDialogue(DIALOGUES.village_sign);
+    } else if (trig.type === 'VILLAGE_NPC') {
+      this.startDialogue(DIALOGUES.bram);
+    } else if (trig.type === 'NPC_ORIN') {
       this.startDialogue(DIALOGUES.inspect_orin);
     } else if (trig.type === 'WARDSTONE') {
       const ws = this.map.wardstones.find((w) => w.id === trig.id)!;
@@ -403,6 +412,11 @@ class ShatteredCovenantGame {
       (Object.keys(this.heroes) as HeroId[]).forEach((id) => {
         this.heroes[id].talentPoints += 1;
       });
+      const keepsake = STARTER_TRINKETS.kaelen[0];
+      if (keepsake && !this.heroes.kaelen.trinkets.some((t) => t.id === keepsake.id)) {
+        this.heroes.kaelen.trinkets.push({ ...keepsake });
+        this.recomputeHeroStats(this.heroes.kaelen);
+      }
       sound.playRecruitFanfare();
       this.startDialogue([
         {
@@ -410,7 +424,7 @@ class ShatteredCovenantGame {
           title: 'Ancient Quarry Vault',
           portraitId: 'stone',
           expression: 'WARM',
-          text: 'Discovered +5 Quarry Heart-Ore (use at the Master Anvil to evolve your party’s weapons!) and +1 Talent Point for every party member!',
+          text: 'Discovered +5 Quarry Heart-Ore (use at the Master Anvil to evolve your party’s weapons!), +1 Talent Point for every party member, and Master Orin’s Plumb-Line — a keepsake, not a starting weapon.',
         },
       ]);
       this.updateExploreHUD();
@@ -425,11 +439,29 @@ class ShatteredCovenantGame {
     this.renderCurrentDialogueLine();
   }
 
+  private kaelenPortraitVariant(): 'humble' | 'shard' | 'heroic' {
+    const kaelen = this.heroes.kaelen;
+    if (kaelen.weaponTierIndex >= 1) return 'heroic';
+    if (kaelen.presentation === 'SHARD') return 'shard';
+    return 'humble';
+  }
+
   private renderCurrentDialogueLine(): void {
     if (!this.activeDialogue) return;
     const line = this.activeDialogue[this.dialogueIndex];
+    if (line.look === 'SHARD') {
+      this.map.applyShardfall();
+      grantHeartShardKit(this.heroes.kaelen);
+    } else if (
+      line.look === 'HUMBLE' &&
+      this.heroes.kaelen.presentation !== 'SHARD' &&
+      this.heroes.kaelen.weaponTierIndex < 1
+    ) {
+      this.heroes.kaelen.presentation = 'HUMBLE';
+    }
     const pCanvas = document.getElementById('dialogue-portrait') as HTMLCanvasElement;
-    drawPortrait(pCanvas, line.portraitId, line.expression || 'NEUTRAL');
+    const variant = line.portraitId === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic';
+    drawPortrait(pCanvas, line.portraitId, line.expression || 'NEUTRAL', performance.now(), variant);
 
     document.getElementById('dialogue-speaker')!.textContent = line.speaker;
     document.getElementById('dialogue-title')!.textContent = line.title || '';
@@ -444,6 +476,7 @@ class ShatteredCovenantGame {
     if (this.dialogueIndex >= this.activeDialogue.length) {
       this.activeDialogue = null;
       document.getElementById('dialogue-modal')!.classList.add('hidden');
+      this.updateExploreHUD();
       if (this.onDialogueComplete) {
         const cb = this.onDialogueComplete;
         this.onDialogueComplete = null;
@@ -490,8 +523,13 @@ class ShatteredCovenantGame {
         h.stats.hp = h.stats.maxHp;
         h.stats.ins = h.stats.maxIns;
       });
-      this.map.playerX = 9 * 24;
-      this.map.playerY = 22 * 24;
+      if (this.heroes.kaelen.presentation === 'HUMBLE') {
+        this.map.playerX = 7.4 * 24;
+        this.map.playerY = 41 * 24;
+      } else {
+        this.map.playerX = 9 * 24;
+        this.map.playerY = 22 * 24;
+      }
     }
 
     this.battle.active = false;
@@ -516,8 +554,19 @@ class ShatteredCovenantGame {
   public updateExploreHUD(): void {
     document.getElementById('ore-count')!.textContent = String(this.heartOre);
 
+    const zoneEl = document.getElementById('zone-subtitle')!;
+    const inHamlet = this.map.playerY >= 26 * 24;
+    zoneEl.textContent = inHamlet
+      ? 'Oakhaven — Frontier Hamlet'
+      : 'Act I — Oakhaven Border Quarry';
+
     // Update current dynamic objective banner
     const objEl = document.getElementById('objective-banner')!;
+    if (this.heroes.kaelen.presentation === 'HUMBLE') {
+      objEl.textContent = 'Objective: Walk north through Oakhaven and find Master Orin at the quarry';
+      this.renderPartyStrip();
+      return;
+    }
     const wsDawn = this.map.wardstones.find((w) => w.id === 'ws_dawn')!;
     const wsObsidian = this.map.wardstones.find((w) => w.id === 'ws_obsidian')!;
     const boss = this.map.fieldEnemies.find((f) => f.isBoss)!;
@@ -538,6 +587,10 @@ class ShatteredCovenantGame {
       objEl.textContent = 'Act I Slice Complete! Explore, reforge weapons at the Anvil, or test Talents!';
     }
 
+    this.renderPartyStrip();
+  }
+
+  private renderPartyStrip(): void {
     // Render Mini Party Strip
     const strip = document.getElementById('party-mini-strip')!;
     strip.innerHTML = '';
@@ -795,7 +848,9 @@ class ShatteredCovenantGame {
     drawPortrait(
       document.getElementById('menu-portrait') as HTMLCanvasElement,
       hero.id,
-      'DETERMINED'
+      'DETERMINED',
+      performance.now(),
+      hero.id === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic'
     );
     document.getElementById('menu-hero-name')!.textContent = hero.name;
     document.getElementById('menu-hero-class')!.textContent = `${hero.className} • ${hero.epithet}`;
@@ -1056,6 +1111,17 @@ class ShatteredCovenantGame {
     }
     this.map.dustParticles = this.map.dustParticles.filter((d) => d.timer > 0);
 
+    if (this.heroes.kaelen.presentation === 'HUMBLE' && !this.shardEventQueued) {
+      const col = this.map.playerX / 24;
+      const row = this.map.playerY / 24;
+      if (row < 22.4 && row > 18 && col > 4 && col < 14) {
+        this.shardEventQueued = true;
+        this.startDialogue(DIALOGUES.intro);
+        this.updateExploreHUD();
+        return;
+      }
+    }
+
     // Update roaming field enemies & check direct contact
     for (const fe of this.map.fieldEnemies) {
       if (fe.defeated) continue;
@@ -1081,6 +1147,14 @@ class ShatteredCovenantGame {
         }
         return;
       }
+    }
+
+    const zoneEl = document.getElementById('zone-subtitle');
+    if (zoneEl) {
+      zoneEl.textContent =
+        this.map.playerY >= 26 * 24
+          ? 'Oakhaven — Frontier Hamlet'
+          : 'Act I — Oakhaven Border Quarry';
     }
 
     // Update interaction prompt button visibility
@@ -1113,19 +1187,23 @@ class ShatteredCovenantGame {
     if (this.activeDialogue) {
       const line = this.activeDialogue[this.dialogueIndex];
       if (line) {
+        const variant = line.portraitId === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic';
         drawPortrait(
           document.getElementById('dialogue-portrait') as HTMLCanvasElement,
           line.portraitId,
           line.expression || 'NEUTRAL',
-          now
+          now,
+          variant
         );
       }
     } else if (this.partyMenuOpen) {
+      const menuHero = this.heroes[this.selectedMenuHeroId];
       drawPortrait(
         document.getElementById('menu-portrait') as HTMLCanvasElement,
         this.selectedMenuHeroId,
         'DETERMINED',
-        now
+        now,
+        menuHero.id === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic'
       );
     }
 
