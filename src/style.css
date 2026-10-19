@@ -627,8 +627,9 @@ body {
 .dialogue-modal {
   position: absolute;
   bottom: 14px;
-  left: 16px;
-  right: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 32px), 640px);
   background: rgba(16, 14, 22, 0.96);
   border: 2px solid var(--brass-border);
   border-radius: 6px;
