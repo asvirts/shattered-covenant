@@ -8,16 +8,32 @@ import {
 } from './data';
 import { sound } from './audio';
 import { BattleEngine } from './battle';
-import { QuarryMap } from './map';
+import { ZoneMap } from './map';
 import { drawPortrait } from './sprites';
-import { DialogueLine, Hero, HeroId } from './types';
+import { DialogueLine, Hero, HeroId, ZoneId } from './types';
+import {
+  getZone,
+  QUARRY_CHEST_ID,
+  QUARRY_WAYGATE_ID,
+  REALM_LABEL,
+  WorldMemory,
+  ZoneExit,
+} from './zones';
 
 class ShatteredCovenantGame {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private heroes: Record<HeroId, Hero>;
-  private map: QuarryMap;
+  private world = new WorldMemory();
+  private map: ZoneMap;
   private battle: BattleEngine;
+  private zoneTransition: {
+    elapsed: number;
+    phase: 'out' | 'in';
+    targetZoneId: ZoneId;
+    targetExitId: string;
+  } | null = null;
+  private readonly zoneFadeHalf = 0.125;
 
   public heartOre = 0;
   private shardEventQueued = false;
@@ -46,8 +62,9 @@ class ShatteredCovenantGame {
     this.ctx.imageSmoothingEnabled = false;
 
     this.heroes = createInitialHeroes();
-    this.map = new QuarryMap();
+    this.map = new ZoneMap(getZone('oakhaven_town'), this.world);
     this.battle = new BattleEngine();
+    sound.playZoneAmbient(this.map.definition.audioProfile);
 
     this.recomputeAllHeroStats();
     this.bindInputEvents();
@@ -152,6 +169,7 @@ class ShatteredCovenantGame {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
       this.keys.add(key);
+      sound.unlock();
 
       if (this.activeDialogue) {
         if (key === ' ' || key === 'enter') {
@@ -200,6 +218,7 @@ class ShatteredCovenantGame {
 
     // Canvas click support (click enemies in battle or click to interact on field)
     this.canvas.addEventListener('click', (e) => {
+      sound.unlock();
       const rect = this.canvas.getBoundingClientRect();
       const scaleX = 640 / rect.width;
       const scaleY = 360 / rect.height;
@@ -233,7 +252,7 @@ class ShatteredCovenantGame {
 
     const muteBtn = document.getElementById('btn-mute')!;
     muteBtn.addEventListener('click', () => {
-      sound.muted = !sound.muted;
+      sound.setMuted(!sound.muted);
       muteBtn.textContent = sound.muted ? 'SFX: OFF' : 'SFX: ON';
     });
 
@@ -367,6 +386,7 @@ class ShatteredCovenantGame {
       }
 
       this.map.attuneWardstone(ws.id);
+      this.world.wardstoneAttunement[ws.id] = ws.attunedBy;
       sound.playWardstoneAttune();
       const dlgKey =
         ws.id === 'ws_dawn'
@@ -401,6 +421,9 @@ class ShatteredCovenantGame {
         h.stats.ins = h.stats.maxIns;
       });
       sound.playHeal();
+      this.world.discoveredWaygateIds.add(QUARRY_WAYGATE_ID);
+      this.world.respawnAllNonBosses();
+      this.map.refreshFieldEnemyDefeat(this.world);
       this.startDialogue(DIALOGUES.waygate_rest);
       this.updateExploreHUD();
     } else if (trig.type === 'ANVIL') {
@@ -408,6 +431,7 @@ class ShatteredCovenantGame {
       this.togglePartyModal(true);
     } else if (trig.type === 'CHEST') {
       this.map.relicChestOpened = true;
+      this.world.openedChestIds.add(QUARRY_CHEST_ID);
       this.heartOre += 5;
       (Object.keys(this.heroes) as HeroId[]).forEach((id) => {
         this.heroes[id].talentPoints += 1;
@@ -513,7 +537,11 @@ class ShatteredCovenantGame {
 
     if (won && this.activeFieldEnemyId) {
       const fe = this.map.fieldEnemies.find((f) => f.id === this.activeFieldEnemyId);
-      if (fe) fe.defeated = true;
+      if (fe) {
+        fe.defeated = true;
+        if (fe.isBoss) this.world.defeatedBossIds.add(fe.id);
+        else this.world.defeatedFieldEnemyIds.add(fe.id);
+      }
       const oreGain = this.battle.enemies.reduce((acc, e) => acc + e.oreReward, 0);
       this.heartOre += oreGain;
     } else if (!won) {
@@ -524,8 +552,15 @@ class ShatteredCovenantGame {
         h.stats.ins = h.stats.maxIns;
       });
       if (this.heroes.kaelen.presentation === 'HUMBLE') {
-        this.map.playerX = 7.4 * 24;
-        this.map.playerY = 41 * 24;
+        this.snapshotZone();
+        const home = getZone('oakhaven_town');
+        this.map.load(home, this.world, { start: true });
+        sound.playZoneAmbient(home.audioProfile);
+      } else if (this.map.definition.id !== 'cratered_quarry') {
+        this.snapshotZone();
+        const quarry = getZone('cratered_quarry');
+        this.map.load(quarry, this.world, { start: true });
+        sound.playZoneAmbient(quarry.audioProfile);
       } else {
         this.map.playerX = 9 * 24;
         this.map.playerY = 22 * 24;
@@ -554,37 +589,44 @@ class ShatteredCovenantGame {
   public updateExploreHUD(): void {
     document.getElementById('ore-count')!.textContent = String(this.heartOre);
 
-    const zoneEl = document.getElementById('zone-subtitle')!;
-    const inHamlet = this.map.playerY >= 26 * 24;
-    zoneEl.textContent = inHamlet
-      ? 'Oakhaven — Frontier Hamlet'
-      : 'Act I — Oakhaven Border Quarry';
+    const def = this.map.definition;
+    const realmLabel = REALM_LABEL[def.realm];
+    const placeLabel =
+      def.id === 'oakhaven_town'
+        ? 'Oakhaven — Frontier Hamlet'
+        : def.name === realmLabel
+          ? def.name
+          : `${def.name} — ${realmLabel}`;
+    document.getElementById('zone-subtitle')!.textContent = placeLabel;
 
-    // Update current dynamic objective banner
     const objEl = document.getElementById('objective-banner')!;
     if (this.heroes.kaelen.presentation === 'HUMBLE') {
       objEl.textContent = 'Objective: Walk north through Oakhaven and find Master Orin at the quarry';
       this.renderPartyStrip();
       return;
     }
-    const wsDawn = this.map.wardstones.find((w) => w.id === 'ws_dawn')!;
-    const wsObsidian = this.map.wardstones.find((w) => w.id === 'ws_obsidian')!;
-    const boss = this.map.fieldEnemies.find((f) => f.isBoss)!;
-
-    if (wsDawn.attunedBy === 'NONE') {
-      objEl.textContent = 'Objective: Attune the Dawn Wardstone east of the crater [Space]';
-    } else if (!this.heroes.sura.recruited) {
-      objEl.textContent = 'Objective: Cross the Sun-Vine Bridge & recruit Sura of the Sun-Scales';
-    } else if (!this.heroes.cassian.recruited) {
-      objEl.textContent = 'Objective: Ascend the northeast ramp & speak to Cassian Thorne by the magma river';
-    } else if (wsObsidian.attunedBy === 'NONE') {
-      objEl.textContent = 'Objective: Attune the Obsidian Wardstone beside Cassian to cool the magma river';
-    } else if (!this.heroes.vesper.recruited) {
-      objEl.textContent = 'Objective: Cross the Blackrock Causeway & recruit Vesper by the Titan Waygate';
-    } else if (!boss.defeated) {
-      objEl.textContent = 'Objective: Storm the North Crater Summit & defeat Inquisitor Vane!';
+    if (def.id !== 'cratered_quarry') {
+      objEl.textContent = placeLabel;
     } else {
-      objEl.textContent = 'Act I Slice Complete! Explore, reforge weapons at the Anvil, or test Talents!';
+      const wsDawn = this.map.wardstones.find((w) => w.id === 'ws_dawn')!;
+      const wsObsidian = this.map.wardstones.find((w) => w.id === 'ws_obsidian')!;
+      const boss = this.map.fieldEnemies.find((f) => f.isBoss)!;
+
+      if (wsDawn.attunedBy === 'NONE') {
+        objEl.textContent = 'Objective: Attune the Dawn Wardstone east of the crater [Space]';
+      } else if (!this.heroes.sura.recruited) {
+        objEl.textContent = 'Objective: Cross the Sun-Vine Bridge & recruit Sura of the Sun-Scales';
+      } else if (!this.heroes.cassian.recruited) {
+        objEl.textContent = 'Objective: Ascend the northeast ramp & speak to Cassian Thorne by the magma river';
+      } else if (wsObsidian.attunedBy === 'NONE') {
+        objEl.textContent = 'Objective: Attune the Obsidian Wardstone beside Cassian to cool the magma river';
+      } else if (!this.heroes.vesper.recruited) {
+        objEl.textContent = 'Objective: Cross the Blackrock Causeway & recruit Vesper by the Titan Waygate';
+      } else if (!boss.defeated) {
+        objEl.textContent = 'Objective: Storm the North Crater Summit & defeat Inquisitor Vane!';
+      } else {
+        objEl.textContent = 'Act I Slice Complete! Explore, reforge weapons at the Anvil, or test Talents!';
+      }
     }
 
     this.renderPartyStrip();
@@ -1058,8 +1100,64 @@ class ShatteredCovenantGame {
     }
   }
 
+  private snapshotZone(): void {
+    if (this.map.relicChestOpened) this.world.openedChestIds.add(QUARRY_CHEST_ID);
+    for (const ws of this.map.wardstones) {
+      this.world.wardstoneAttunement[ws.id] = ws.attunedBy;
+    }
+    for (const fe of this.map.fieldEnemies) {
+      if (fe.isBoss) {
+        if (fe.defeated) this.world.defeatedBossIds.add(fe.id);
+        else this.world.defeatedBossIds.delete(fe.id);
+      } else if (fe.defeated) {
+        this.world.defeatedFieldEnemyIds.add(fe.id);
+      } else {
+        this.world.defeatedFieldEnemyIds.delete(fe.id);
+      }
+    }
+  }
+
+  private beginZoneTransition(exit: ZoneExit): void {
+    if (this.zoneTransition) return;
+    document.getElementById('btn-interact-prompt')!.classList.add('hidden');
+    this.zoneTransition = {
+      elapsed: 0,
+      phase: 'out',
+      targetZoneId: exit.targetZoneId,
+      targetExitId: exit.targetExitId,
+    };
+  }
+
+  private updateZoneTransition(dt: number): void {
+    if (!this.zoneTransition) return;
+    this.zoneTransition.elapsed += dt;
+    if (this.zoneTransition.phase === 'out' && this.zoneTransition.elapsed >= this.zoneFadeHalf) {
+      const fromRealm = this.map.definition.realm;
+      this.snapshotZone();
+      const target = getZone(this.zoneTransition.targetZoneId);
+      if (target.realm !== fromRealm) this.world.respawnNonBossesInRealm(fromRealm);
+      this.map.load(target, this.world, { exitId: this.zoneTransition.targetExitId });
+      sound.playZoneAmbient(target.audioProfile);
+      this.zoneTransition.phase = 'in';
+      this.zoneTransition.elapsed = 0;
+      this.updateExploreHUD();
+    } else if (this.zoneTransition.phase === 'in' && this.zoneTransition.elapsed >= this.zoneFadeHalf) {
+      this.zoneTransition = null;
+    }
+  }
+
+  private drawZoneFade(): void {
+    if (!this.zoneTransition) return;
+    const alpha =
+      this.zoneTransition.phase === 'out'
+        ? Math.min(1, this.zoneTransition.elapsed / this.zoneFadeHalf)
+        : Math.max(0, 1 - this.zoneTransition.elapsed / this.zoneFadeHalf);
+    this.ctx.fillStyle = `rgba(5, 4, 8, ${alpha})`;
+    this.ctx.fillRect(0, 0, 640, 360);
+  }
+
   private updateExploration(dt: number): void {
-    if (this.activeDialogue || this.partyMenuOpen || this.battle.active) return;
+    if (this.activeDialogue || this.partyMenuOpen || this.battle.active || this.zoneTransition) return;
 
     if (this.map.swingTimer > 0) {
       this.map.swingTimer = Math.max(0, this.map.swingTimer - dt);
@@ -1111,7 +1209,11 @@ class ShatteredCovenantGame {
     }
     this.map.dustParticles = this.map.dustParticles.filter((d) => d.timer > 0);
 
-    if (this.heroes.kaelen.presentation === 'HUMBLE' && !this.shardEventQueued) {
+    if (
+      this.map.definition.id === 'cratered_quarry' &&
+      this.heroes.kaelen.presentation === 'HUMBLE' &&
+      !this.shardEventQueued
+    ) {
       const col = this.map.playerX / 24;
       const row = this.map.playerY / 24;
       if (row < 22.4 && row > 18 && col > 4 && col < 14) {
@@ -1149,12 +1251,10 @@ class ShatteredCovenantGame {
       }
     }
 
-    const zoneEl = document.getElementById('zone-subtitle');
-    if (zoneEl) {
-      zoneEl.textContent =
-        this.map.playerY >= 26 * 24
-          ? 'Oakhaven — Frontier Hamlet'
-          : 'Act I — Oakhaven Border Quarry';
+    const exit = this.map.exitUnderPlayer();
+    if (exit) {
+      this.beginZoneTransition(exit);
+      return;
     }
 
     // Update interaction prompt button visibility
@@ -1179,8 +1279,10 @@ class ShatteredCovenantGame {
       this.battle.render(this.ctx, 640, 360, now);
       this.renderBattleHUD();
     } else {
+      this.updateZoneTransition(dt);
       this.updateExploration(dt);
       this.map.render(this.ctx, 640, 360, this.heroes, now);
+      this.drawZoneFade();
     }
 
     // Animate active 96x96 Bust Portraits at 60fps

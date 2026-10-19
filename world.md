@@ -43,7 +43,7 @@ Instead of disposable shop weapons, major sidequests revolve around **Tri-Realm 
 ## 4. The 3-Act Narrative Arc
 
 ### Act I: The Quarry Fall (6–8 Hours)
-* **The Opening (Ley-Line Cataclysm):** You begin in **Oakhaven**, a rugged mining and masonry frontier town in **The Obsidian Reign** bordering the Dawn Wilds. While apprentice mason **Kaelen Vance** and his mentor **Master Orin** inspect the quarry's boundary stone, the central Edict Pillar shatters in the distant capital. A blazing fragment—the **Heart-Shard**—falls from the sky directly into Oakhaven's quarry.
+* **The Opening (Ley-Line Cataclysm):** You begin in **Oakhaven**, a rugged mining and masonry town in the **Frontier**, the border region between **The Obsidian Reign** and the Dawn Wilds. While apprentice mason **Kaelen Vance** and his mentor **Master Orin** inspect the quarry's boundary stone, the central Edict Pillar shatters in the distant capital. A blazing fragment—the **Heart-Shard**—falls from the sky directly into Oakhaven's quarry.
 * **The Inciting Incident:** Master Orin pushes Kaelen clear of the impact and is petrified inside a pillar of volatile rune-crystal, while the Heart-Shard fuses permanently into Kaelen's mason gauntlet. Within hours, vanguard forces from both the **Mythic Dawn** and the **Obsidian Reign's Inquisition** descend on Oakhaven to seize the shard.
 * **The Goal:** Kaelen forms an uneasy truce with **Sura**, a Sun-Scale Valkyrie scout sent by the Mythic Dawn, after they discover that only the **Grand Archive** possesses the knowledge to safely unseal Master Orin's crystal without killing him—and that four colossal **Great Shards** have fallen into ancient Titan Vaults across the continent.
 
