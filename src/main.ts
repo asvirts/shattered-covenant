@@ -2,7 +2,9 @@ import {
   ALL_GLYPHS,
   DIALOGUES,
   DUAL_TECHS,
+  STARTER_TRINKETS,
   createInitialHeroes,
+  grantHeartShardKit,
 } from './data';
 import { sound } from './audio';
 import { BattleEngine } from './battle';
@@ -33,7 +35,8 @@ class ShatteredCovenantGame {
   } | null = null;
   private readonly zoneFadeHalf = 0.125;
 
-  public heartOre = 2;
+  public heartOre = 0;
+  private shardEventQueued = false;
   private keys = new Set<string>();
   private lastTime = performance.now();
 
@@ -53,13 +56,14 @@ class ShatteredCovenantGame {
   // frame removes the element between mousedown and mouseup, so the click never lands.
   private commandPanelSignature = '';
 
+  /** Initializes the game, opens the guild-loft wake dialogue, and starts the animation loop. */
   constructor() {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     this.ctx = this.canvas.getContext('2d')!;
     this.ctx.imageSmoothingEnabled = false;
 
     this.heroes = createInitialHeroes();
-    this.map = new ZoneMap(getZone('cratered_quarry'), this.world);
+    this.map = new ZoneMap(getZone('oakhaven_town'), this.world);
     this.battle = new BattleEngine();
     sound.playZoneAmbient(this.map.definition.audioProfile);
 
@@ -68,8 +72,8 @@ class ShatteredCovenantGame {
     this.bindUIButtons();
     this.updateExploreHUD();
 
-    // Trigger Act I Opening Cutscene on start
-    this.startDialogue(DIALOGUES.intro);
+    // Wake in Oakhaven. The quarry cataclysm plays only after he walks up to it.
+    this.startDialogue(DIALOGUES.wake);
 
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -341,13 +345,20 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Handles the nearest village or quarry interaction, including recruitment and chest rewards. */
   private triggerNearestInteraction(): void {
     const trig = this.map.getNearestTrigger(this.heroes);
     if (!trig) return;
 
     sound.playMenuConfirm();
 
-    if (trig.type === 'NPC_ORIN') {
+    if (trig.type === 'PALLET') {
+      this.startDialogue(DIALOGUES.pallet);
+    } else if (trig.type === 'VILLAGE_SIGN') {
+      this.startDialogue(DIALOGUES.village_sign);
+    } else if (trig.type === 'VILLAGE_NPC') {
+      this.startDialogue(DIALOGUES.bram);
+    } else if (trig.type === 'NPC_ORIN') {
       this.startDialogue(DIALOGUES.inspect_orin);
     } else if (trig.type === 'WARDSTONE') {
       const ws = this.map.wardstones.find((w) => w.id === trig.id)!;
@@ -427,6 +438,11 @@ class ShatteredCovenantGame {
       (Object.keys(this.heroes) as HeroId[]).forEach((id) => {
         this.heroes[id].talentPoints += 1;
       });
+      const keepsake = STARTER_TRINKETS.kaelen[0];
+      if (keepsake && !this.heroes.kaelen.trinkets.some((t) => t.id === keepsake.id)) {
+        this.heroes.kaelen.trinkets.push({ ...keepsake });
+        this.recomputeHeroStats(this.heroes.kaelen);
+      }
       sound.playRecruitFanfare();
       this.startDialogue([
         {
@@ -434,7 +450,7 @@ class ShatteredCovenantGame {
           title: 'Ancient Quarry Vault',
           portraitId: 'stone',
           expression: 'WARM',
-          text: 'Discovered +5 Quarry Heart-Ore (use at the Master Anvil to evolve your party’s weapons!) and +1 Talent Point for every party member!',
+          text: 'Discovered +5 Quarry Heart-Ore (use at the Master Anvil to evolve your party’s weapons!), +1 Talent Point for every party member, and Master Orin’s Plumb-Line — a keepsake, not a starting weapon.',
         },
       ]);
       this.updateExploreHUD();
@@ -449,11 +465,35 @@ class ShatteredCovenantGame {
     this.renderCurrentDialogueLine();
   }
 
+  /** Selects Kaelen’s portrait from his weapon tier and Heart-Shard presentation. */
+  private kaelenPortraitVariant(): 'humble' | 'shard' | 'heroic' {
+    const kaelen = this.heroes.kaelen;
+    if (kaelen.weaponTierIndex >= 1) return 'heroic';
+    if (kaelen.presentation === 'SHARD') return 'shard';
+    return 'humble';
+  }
+
+  /**
+   * Applies the current dialogue line’s presentation changes and renders its portrait and text.
+   * A SHARD look also applies shardfall to the map and grants Kaelen's shard skills,
+   * regardless of the line's speaker. A HUMBLE look cannot undo shard progression.
+   */
   private renderCurrentDialogueLine(): void {
     if (!this.activeDialogue) return;
     const line = this.activeDialogue[this.dialogueIndex];
+    if (line.look === 'SHARD') {
+      this.map.applyShardfall();
+      grantHeartShardKit(this.heroes.kaelen);
+    } else if (
+      line.look === 'HUMBLE' &&
+      this.heroes.kaelen.presentation !== 'SHARD' &&
+      this.heroes.kaelen.weaponTierIndex < 1
+    ) {
+      this.heroes.kaelen.presentation = 'HUMBLE';
+    }
     const pCanvas = document.getElementById('dialogue-portrait') as HTMLCanvasElement;
-    drawPortrait(pCanvas, line.portraitId, line.expression || 'NEUTRAL');
+    const variant = line.portraitId === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic';
+    drawPortrait(pCanvas, line.portraitId, line.expression || 'NEUTRAL', performance.now(), variant);
 
     document.getElementById('dialogue-speaker')!.textContent = line.speaker;
     document.getElementById('dialogue-title')!.textContent = line.title || '';
@@ -461,6 +501,7 @@ class ShatteredCovenantGame {
     document.getElementById('dialogue-step-indicator')!.textContent = `${this.dialogueIndex + 1} / ${this.activeDialogue.length}`;
   }
 
+  /** Advances the dialogue; on its final line, closes it, refreshes the HUD, and invokes its completion callback. */
   private advanceDialogue(): void {
     if (!this.activeDialogue) return;
     sound.playMenuTick();
@@ -468,6 +509,7 @@ class ShatteredCovenantGame {
     if (this.dialogueIndex >= this.activeDialogue.length) {
       this.activeDialogue = null;
       document.getElementById('dialogue-modal')!.classList.add('hidden');
+      this.updateExploreHUD();
       if (this.onDialogueComplete) {
         const cb = this.onDialogueComplete;
         this.onDialogueComplete = null;
@@ -497,6 +539,7 @@ class ShatteredCovenantGame {
     this.renderBattleHUD();
   }
 
+  /** Applies battle rewards or defeat recovery, then restores exploration and any victory dialogue. */
   private finishBattle(): void {
     sound.playMenuConfirm();
     const won = this.battle.victoryState === 'WON';
@@ -518,8 +561,20 @@ class ShatteredCovenantGame {
         h.stats.hp = h.stats.maxHp;
         h.stats.ins = h.stats.maxIns;
       });
-      this.map.playerX = 9 * 24;
-      this.map.playerY = 22 * 24;
+      if (this.heroes.kaelen.presentation === 'HUMBLE') {
+        this.snapshotZone();
+        const home = getZone('oakhaven_town');
+        this.map.load(home, this.world, { start: true });
+        sound.playZoneAmbient(home.audioProfile);
+      } else if (this.map.definition.id !== 'cratered_quarry') {
+        this.snapshotZone();
+        const quarry = getZone('cratered_quarry');
+        this.map.load(quarry, this.world, { start: true });
+        sound.playZoneAmbient(quarry.audioProfile);
+      } else {
+        this.map.playerX = 9 * 24;
+        this.map.playerY = 22 * 24;
+      }
     }
 
     this.battle.active = false;
@@ -541,15 +596,26 @@ class ShatteredCovenantGame {
     shell.className = `domain-${this.battle.activeDomain.toLowerCase()}`;
   }
 
+  /** Refreshes Heart-Ore, the current zone, the progression objective, and the party strip. */
   public updateExploreHUD(): void {
     document.getElementById('ore-count')!.textContent = String(this.heartOre);
 
     const def = this.map.definition;
     const realmLabel = REALM_LABEL[def.realm];
-    const placeLabel = def.name === realmLabel ? def.name : `${def.name} — ${realmLabel}`;
+    const placeLabel =
+      def.id === 'oakhaven_town'
+        ? 'Oakhaven — Frontier Hamlet'
+        : def.name === realmLabel
+          ? def.name
+          : `${def.name} — ${realmLabel}`;
     document.getElementById('zone-subtitle')!.textContent = placeLabel;
 
     const objEl = document.getElementById('objective-banner')!;
+    if (this.heroes.kaelen.presentation === 'HUMBLE') {
+      objEl.textContent = 'Objective: Walk north through Oakhaven and find Master Orin at the quarry';
+      this.renderPartyStrip();
+      return;
+    }
     if (def.id !== 'cratered_quarry') {
       objEl.textContent = placeLabel;
     } else {
@@ -574,6 +640,11 @@ class ShatteredCovenantGame {
       }
     }
 
+    this.renderPartyStrip();
+  }
+
+  /** Rebuilds clickable status cards for recruited heroes with HP, INS, and available Talent points. */
+  private renderPartyStrip(): void {
     // Render Mini Party Strip
     const strip = document.getElementById('party-mini-strip')!;
     strip.innerHTML = '';
@@ -801,6 +872,7 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Renders the selected hero’s portrait, stats, and active talents, glyphs, or weapons tab. */
   private renderPartyModal(): void {
     const hero = this.heroes[this.selectedMenuHeroId];
 
@@ -831,7 +903,9 @@ class ShatteredCovenantGame {
     drawPortrait(
       document.getElementById('menu-portrait') as HTMLCanvasElement,
       hero.id,
-      'DETERMINED'
+      'DETERMINED',
+      performance.now(),
+      hero.id === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic'
     );
     document.getElementById('menu-hero-name')!.textContent = hero.name;
     document.getElementById('menu-hero-class')!.textContent = `${hero.className} • ${hero.epithet}`;
@@ -1095,6 +1169,11 @@ class ShatteredCovenantGame {
     this.ctx.fillRect(0, 0, 640, 360);
   }
 
+  /**
+   * Updates exploration movement and encounters, triggering shardfall dialogue on quarry arrival.
+   * dt is elapsed time in seconds. Does nothing during dialogue, party menus,
+   * battle, or zone transitions.
+   */
   private updateExploration(dt: number): void {
     if (this.activeDialogue || this.partyMenuOpen || this.battle.active || this.zoneTransition) return;
 
@@ -1148,6 +1227,21 @@ class ShatteredCovenantGame {
     }
     this.map.dustParticles = this.map.dustParticles.filter((d) => d.timer > 0);
 
+    if (
+      this.map.definition.id === 'cratered_quarry' &&
+      this.heroes.kaelen.presentation === 'HUMBLE' &&
+      !this.shardEventQueued
+    ) {
+      const col = this.map.playerX / 24;
+      const row = this.map.playerY / 24;
+      if (row < 22.4 && row > 18 && col > 4 && col < 14) {
+        this.shardEventQueued = true;
+        this.startDialogue(DIALOGUES.intro);
+        this.updateExploreHUD();
+        return;
+      }
+    }
+
     // Update roaming field enemies & check direct contact
     for (const fe of this.map.fieldEnemies) {
       if (fe.defeated) continue;
@@ -1192,6 +1286,7 @@ class ShatteredCovenantGame {
     }
   }
 
+  /** Advances and renders the active game mode, refreshes its HUD, and schedules the next frame. */
   private loop(now: number): void {
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;
@@ -1213,19 +1308,23 @@ class ShatteredCovenantGame {
     if (this.activeDialogue) {
       const line = this.activeDialogue[this.dialogueIndex];
       if (line) {
+        const variant = line.portraitId === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic';
         drawPortrait(
           document.getElementById('dialogue-portrait') as HTMLCanvasElement,
           line.portraitId,
           line.expression || 'NEUTRAL',
-          now
+          now,
+          variant
         );
       }
     } else if (this.partyMenuOpen) {
+      const menuHero = this.heroes[this.selectedMenuHeroId];
       drawPortrait(
         document.getElementById('menu-portrait') as HTMLCanvasElement,
         this.selectedMenuHeroId,
         'DETERMINED',
-        now
+        now,
+        menuHero.id === 'kaelen' ? this.kaelenPortraitVariant() : 'heroic'
       );
     }
 
