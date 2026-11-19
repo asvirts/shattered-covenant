@@ -25,6 +25,7 @@ Produce a locked, decision-complete specification (`.scratch/world/spec.md`) and
 
 - [Zone Graph Topology, Multi-Map Data Model & Border Transitions](issues/01-zone-graph-and-transitions.md): Per-Zone scrolling grids (`38×28` to `64×48`), 15+ canonical Zones across Frontier/Archive/3 Realm `[Hub ↔ Warzone Approach ↔ Vault]` branches + Sky-Map destinations, step-on `EXIT` strips with 250ms fade, persistent Wardstone states & Waygate/Realm-change mob respawns, and declarative `RealmId`/`BiomePaletteId`/`ZoneAudioProfileId` configs.
 - [Three-Act World Phase State Machine, Story Flags & Dialogue Scripting](issues/04-world-phase-and-narrative-state.md): Story progress is one append-only set of typed Story Beats on `WorldMemory`; World Phase is derived from beats; `recruited`/`presentation` move into beats; Zones change via beat-gated `layers`; Scenes are async TS functions (only writer of beats) started by triggers declared in Zone data; no dialogue choices for now. [ADR-0004](../../docs/adr/0004-story-beats-derive-world-phase.md).
+- [Multi-Domain Local Wardstone Attunement & Environmental State Machine](issues/02-wardstone-multi-domain-puzzles.md): A Domain is channelable once a party member native to it has joined (Kaelen/Obsidian at shardfall, Sura/Dawn in Act I, Vesper/Astral at Act II start); battle Domain Shifts use the same set; each stone holds one active Domain whose tile overrides swap on change, free and unlimited; picker with ghost-tile preview at the stone.
 
 ## Not yet specified
 
