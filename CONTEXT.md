@@ -55,6 +55,10 @@ _Avoid_: Obelisk, shrine, switch
 An ancient teleportation arch whose runes can be re-inscribed by the Heart-Shard Gauntlet to unlock fast travel between discovered Waygates, full party restoration, and free Talent respecs.
 _Avoid_: Save point, portal, teleporter
 
+**Vaelora Map**:
+The illustrated, non-walkable travel selector of the continent, opened from a Titan Waygate (discovered Waygates only) or by calling the Sun-Drakes from an open-sky Zone (adds high-altitude dungeons, hidden Titan sanctuaries and The Sunken Reliquary).
+_Avoid_: Overworld, world map (when implying a walkable grid)
+
 **Sun-Drake**:
 A tamed sky-mount earned in The Mythic Dawn during Act II that unlocks elevated sky-map travel to reach high-altitude dungeons, hidden Titan sanctuaries, and The Sunken Reliquary across the central sea.
 _Avoid_: Airship, wyvern mount (wyverns are ridden by Sun-Scale scouts; the party's tamed mounts are Sun-Drakes)
