@@ -83,3 +83,10 @@ Act I runs Oakhaven → Cratered Quarry → Oakhaven → Kingsroad Pass → Gran
   - No required puzzle and no boss mechanic in Act I may need `ASTRAL`.
   - Both bosses must offer an answer through at least one of the two unlocked Domains, using the native-affinity rule the combat brief settles (combat-brief #08).
   - The Basilisk is the Domain-Shift teaching fight: one Domain clearly helps, and the other is neutral, never punishing. *(judgment)*
+
+## Comments
+
+**2026-11-18, reconciled with the combat brief.** Combat-brief [#03](../../combat-brief/issues/03-weakness-break-vitality.md) set the weakness cycle: Astral beats Obsidian, Obsidian beats Dawn, Dawn beats Astral. With only Obsidian (Kaelen) and Dawn (Sura) in Act I, the Act I enemy roster needs targets for both. *(judgment)*
+- **Dawn-affinity enemies** for Kaelen's Obsidian skills: the "frenzied Dawn-beasts" of the quarry's lower tunnels (`locations-and-dungeons.md`).
+- **Astral-affinity enemies** for Sura's Dawn skills: rune-crystal creatures in the crystallized half of the quarry. The **Crystal-Gorged Basilisk** is native `ASTRAL`, so Sura lands its weakness hits. Under combat-brief [#08](../../combat-brief/issues/08-native-domain-affinity.md), shifting to either unlocked Domain ends its Empowered state. This replaces "one Domain clearly helps, the other is neutral" in §2.
+- **Obsidian-affinity enemies** (Inquisitor scouts, the Ironclad Hound-Pack, Vane) have no weakness the Act I party can hit. They are broken by Kaelen's Mason skills, crits and Binds, and Vane loses Empowered when the party shifts to Dawn. That makes Vane the Act's hard gate, which is intended.

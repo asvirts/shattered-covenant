@@ -81,8 +81,44 @@ _Avoid_: Cutscene script, event (when referring to the authored sequence)
 
 ### Combat & Battle Systems
 
+**Heart-Shard Gauge**:
+The party's shared three-Charge meter (0–100%), filled by hero actions, weakness hits, critical hits, Shatters and damage taken, and spent to Strike the Heart-Shard for a Domain shift. Only Domains the party has unlocked can be struck.
+_Avoid_: Ley-Line Gauge, Domain Gauge
+
+**Timeline Tick**:
+The unit of the CTB Timeline's shared clock, equal to 10 turn-counter units. Domain durations, Recovery Delays and Shattered knockback are measured in Ticks.
+_Avoid_: turn, round (when meaning clock time)
+
+**Recovery Delay**:
+The Ticks an action adds to its user's next turn on top of the Tempo interval: Free (0, the turn continues), Fast (+0) or Heavy (+3).
+_Avoid_: cast time, wind-up
+
+**Weakness Hit**:
+A hit whose skill Domain beats the target's Domain affinity in the cycle Astral → Obsidian → Dawn → Astral. It chips Stability and charges the Heart-Shard Gauge but adds no damage.
+_Avoid_: elemental weakness
+
+**Break Power**:
+The Stability segments an attack removes: the skill's rating whenever its hit chips, plus the weapon's rating on a Weakness Hit.
+_Avoid_: stagger power
+
+**Ley-Line Surge**:
+One of four effects (+30% Crit, Zero INS Cost, Ley Surge, Volatile Shock) attached to every 4th turn of a battle, applied to whichever unit takes that turn.
+_Avoid_: surge bonus
+
+**Intent Line**:
+The telegraphed target rule on an enemy's next action (Highest Threat, Lowest HP, a named hero, All, Charging, Fortifying), shown with the hero it currently points at.
+_Avoid_: AI pattern, enemy script (when meaning the visible forecast)
+
+**Ambient Domain**:
+The Domain a battle returns to when a party shift expires: neutral in normal battles, the boss's native Domain in boss battles.
+_Avoid_: default domain, base state
+
+**Empowered**:
+A boss's state while its native Domain is active: +20% damage dealt and 1 less Stability chipped per hit.
+_Avoid_: enraged, buffed
+
 **Stability**:
-An enemy's visible carved-rune stagger meter, chipped by weakness hits, critical hits, and Binds, and emptied to trigger *Shattered*.
+An enemy's visible carved-rune stagger meter, chipped by weakness hits, critical hits, Binds, and Kaelen's Mason skills, and emptied to trigger *Shattered*.
 _Avoid_: Break gauge, poise, stagger bar
 
 **Shattered**:
