@@ -55,6 +55,10 @@ _Avoid_: Obelisk, shrine, switch
 An ancient teleportation arch whose runes can be re-inscribed by the Heart-Shard Gauntlet to unlock fast travel between discovered Waygates, full party restoration, and free Talent respecs.
 _Avoid_: Save point, portal, teleporter
 
+**Vaelora Map**:
+The illustrated, non-walkable travel selector of the continent, opened from a Titan Waygate (discovered Waygates only) or by calling the Sun-Drakes from an open-sky Zone (adds high-altitude dungeons, hidden Titan sanctuaries and The Sunken Reliquary).
+_Avoid_: Overworld, world map (when implying a walkable grid)
+
 **Sun-Drake**:
 A tamed sky-mount earned in The Mythic Dawn during Act II that unlocks elevated sky-map travel to reach high-altitude dungeons, hidden Titan sanctuaries, and The Sunken Reliquary across the central sea.
 _Avoid_: Airship, wyvern mount (wyverns are ridden by Sun-Scale scouts; the party's tamed mounts are Sun-Drakes)
@@ -64,13 +68,57 @@ The signature multi-step weapon crafting questline (unlocking Weapon Tier 4) in 
 _Avoid_: Weapon synthesis, generic anvil upgrade
 
 **World Phase**:
-One of the three global narrative acts (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`) that governs available Zones, regional NPC/faction states, and the transformation of The Grand Archive into The Spire of the First Word alongside the Tri-Realm Coalition War Camp.
+One of the three global narrative acts (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`) that governs available Zones, regional NPC/faction states, and the transformation of The Grand Archive into The Spire of the First Word alongside the Tri-Realm Coalition War Camp. Always derived from Story Beats, never stored.
 _Avoid_: World state, chapter, era
+
+**Story Beat**:
+One named, permanent moment of story progress (e.g. `shard_fell`, `sura_joined`, `seraphine_betrayal`), drawn from a fixed typed list and recorded once in `WorldMemory`. Beats are the only record of story progress: recruitment, recovered Great Shards, faction changes and one-time scenes are all beats.
+_Avoid_: Story flag, quest flag, switch
+
+**Scene**:
+A scripted sequence (dialogue, fades, battles, party changes) written as an async TypeScript function and started by a Zone trigger. Scenes are the only thing that add Story Beats.
+_Avoid_: Cutscene script, event (when referring to the authored sequence)
 
 ### Combat & Battle Systems
 
+**Heart-Shard Gauge**:
+The party's shared three-Charge meter (0–100%), filled by hero actions, weakness hits, critical hits, Shatters and damage taken, and spent to Strike the Heart-Shard for a Domain shift. Only Domains the party has unlocked can be struck.
+_Avoid_: Ley-Line Gauge, Domain Gauge
+
+**Timeline Tick**:
+The unit of the CTB Timeline's shared clock, equal to 10 turn-counter units. Domain durations, Recovery Delays and Shattered knockback are measured in Ticks.
+_Avoid_: turn, round (when meaning clock time)
+
+**Recovery Delay**:
+The Ticks an action adds to its user's next turn on top of the Tempo interval: Free (0, the turn continues), Fast (+0) or Heavy (+3).
+_Avoid_: cast time, wind-up
+
+**Weakness Hit**:
+A hit whose skill Domain beats the target's Domain affinity in the cycle Astral → Obsidian → Dawn → Astral. It chips Stability and charges the Heart-Shard Gauge but adds no damage.
+_Avoid_: elemental weakness
+
+**Break Power**:
+The Stability segments an attack removes: the skill's rating whenever its hit chips, plus the weapon's rating on a Weakness Hit.
+_Avoid_: stagger power
+
+**Ley-Line Surge**:
+One of four effects (+30% Crit, Zero INS Cost, Ley Surge, Volatile Shock) attached to every 4th turn of a battle, applied to whichever unit takes that turn.
+_Avoid_: surge bonus
+
+**Intent Line**:
+The telegraphed target rule on an enemy's next action (Highest Threat, Lowest HP, a named hero, All, Charging, Fortifying), shown with the hero it currently points at.
+_Avoid_: AI pattern, enemy script (when meaning the visible forecast)
+
+**Ambient Domain**:
+The Domain a battle returns to when a party shift expires: neutral in normal battles, the boss's native Domain in boss battles.
+_Avoid_: default domain, base state
+
+**Empowered**:
+A boss's state while its native Domain is active: +20% damage dealt and 1 less Stability chipped per hit.
+_Avoid_: enraged, buffed
+
 **Stability**:
-An enemy's visible carved-rune stagger meter, chipped by weakness hits, critical hits, and Binds, and emptied to trigger *Shattered*.
+An enemy's visible carved-rune stagger meter, chipped by weakness hits, critical hits, Binds, and Kaelen's Mason skills, and emptied to trigger *Shattered*.
 _Avoid_: Break gauge, poise, stagger bar
 
 **Shattered**:

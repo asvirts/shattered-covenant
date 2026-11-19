@@ -1,0 +1,5 @@
+# Timeline Ticks Measure Shared Time, Not Actor Turns
+
+A Global Timeline Tick is 10 units of the CTB counter that every unit already shares. Domain durations (4 and 8 Ticks), Recovery Delays and Shattered knockback are all measured in time, not in actor turns. Counting turns would let every extra enemy use up the party's Domain turns, and it could not express "this action delays you more". Counting time makes Tempo and Haste matter inside a Domain and keeps one unit for every timeline rule. Surge slots stay on turn numbers (every 4th turn), so pushing a portrait forward or back changes who lands on them.
+
+**Considered options:** ticks as actor turns (rejected because battle size changes how long a Domain lasts, and Recovery Delay can't be expressed), and a separate real-time clock (rejected because it breaks the turn-based Wait behaviour where the clock stops while a menu is open). Detail lives in [`.scratch/combat-brief/issues/01-global-timeline-tick.md`](../../.scratch/combat-brief/issues/01-global-timeline-tick.md) and [`10-surge-and-domain-placement.md`](../../.scratch/combat-brief/issues/10-surge-and-domain-placement.md).

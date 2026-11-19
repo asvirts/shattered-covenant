@@ -47,10 +47,11 @@
   * **Obsidian Attunement:** Glowing lava falls cool and darken into stepped basalt paths.
   * **Astral Attunement:** Sunken crystal platforms ignite with cyan starlight and levitate into place.
 
-### Classic Traversable Continental Overworld Map
-* Exiting a town or dungeon transitions to a **Classic Miniature Overworld Map** of **Vaelora**:
-  * Shows the distinct biome borders between the emerald canopies of **The Mythic Dawn**, the volcanic obsidian peaks of **The Obsidian Reign**, the white-sand crystal badlands of **The Astral Wastes**, and the central crater of **The Grand Archive**.
-  * In Act II, boarding your tamed **Sun-Drakes** lifts the party into the overworld sky layer—complete with parallax cloud shadows—allowing free flight over mountain ranges and the central sea to discover hidden Titan shrines and optional superboss lairs.
+### The Vaelora Map (Travel Selector, Not a Walkable Overworld)
+* There is no walkable continental overworld ([ADR-0001](./docs/adr/0001-interconnected-zones-without-overworld.md)). Zones connect by border exits, and long-distance travel uses one illustrated, non-walkable **Vaelora Map** screen:
+  * It shows the emerald canopies of **The Mythic Dawn**, the volcanic obsidian peaks of **The Obsidian Reign**, the white-sand crystal badlands of **The Astral Wastes**, the mountain ridges between them, the central sea, and the crater of **The Grand Archive**.
+  * Opened from a **Titan Waygate**, it shows only discovered Waygates.
+  * In Act II, calling the tamed **Sun-Drakes** from an open-sky Zone opens the same map in its sky view, with parallax cloud shadows and a slow drift. Sun-Drake-only destinations (high-altitude dungeons, hidden Titan sanctuaries, **The Sunken Reliquary**) appear alongside the Waygates. Rules live in [`.scratch/world/issues/03-waygate-and-sun-drake-traversal.md`](./.scratch/world/issues/03-waygate-and-sun-drake-traversal.md).
 
 ---
 

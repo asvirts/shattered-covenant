@@ -25,8 +25,8 @@ The fixed four-hero party is a deliberate answer to the "ensemble" fantasy: beca
 
 ### Combat Profile & Specs
 * **Primary Stats:** Highest **Vitality (`VIT`)** and **Grit (`GRT`)**.
-* **Domain Resonance (Obsidian Reign):** *Forgeborn Calibration* — Attacks restore 10% `INS` and chip +1 bonus Stability.
-* **Unique Command — `Chisel`:** Strikes an enemy to crack 1 Stability segment and generate Taunt/Threat; if the target is already **Shattered**, extracts a temporary Rune Barrier for the party and charges the **Domain Gauge** by +20%.
+* **Domain Resonance (Obsidian Reign):** *Forgeborn Calibration* — Attacks restore 10% `INS` and deal +15% damage to armored or shielded foes (see `combat.md`).
+* **Unique Command — `Chisel`:** Strikes an enemy to crack 1 Stability segment and generate Taunt/Threat; if the target is already **Shattered**, extracts a temporary Rune Barrier for the party and charges the **Heart-Shard Gauge** by +20%.
 * **Talent Tree Branches:**
   * 🛡️ **Spec A: Wardstone Bulwark (Protection / Tank):** Unlocks active Taunts, party-wide basalt barriers, damage interception (*Guard*), and counter-slams whenever Kaelen takes a hit.
   * 🔨 **Spec B: Faultbreaker (Arms / Heavy Bruiser):** Focuses on crushing two-handed maul slams, AoE shockwaves that crack Stability across all foes, and massive execution multipliers against **Shattered** targets.
@@ -70,7 +70,7 @@ The fixed four-hero party is a deliberate answer to the "ensemble" fantasy: beca
 * **Domain Resonance (Astral Wastes):** *Zero-Point Conduit* — Single-target heals and shielding spells automatically splash to all allies at 50% potency.
 * **Unique Command — `Echo Cast`:** Records the last spell or skill cast by an ally and replays it at 60% potency for half `INS` cost.
 * **Talent Tree Branches:**
-  * ✨ **Spec A: Loomkeeper (Healer / Starlight Shields & Restoration):** Specializes in direct starlight healing, damage-absorbing *Astral Wraps* (shields that prevent stagger), and party-wide debuff cleansing.
+  * ✨ **Spec A: Loomkeeper (Healer / Starlight Shields & Restoration):** Specializes in direct starlight healing, damage-absorbing *Astral Wraps* shields, and party-wide debuff cleansing.
   * ⏳ **Spec B: Astrolabe Savant (Tactician / Timeline & Ley-Line Control):** Manipulates the CTB Timeline bar (pulling allies forward, shoving enemies into hazard slots, swapping turn order) and extends **Ley-Line Domain Shift** durations.
 
 ### Personal Narrative Arc
@@ -88,7 +88,7 @@ The fixed four-hero party is a deliberate answer to the "ensemble" fantasy: beca
 
 ### Combat Profile & Specs
 * **Primary Stats:** Highest **Inscription (`INS`)** and **Resonance (`RES`)**. Starts with +1 extra unlocked socket on his **Glyph Tablet**.
-* **Domain Resonance (Obsidian Reign):** *Forgeborn Calibration* — Attacks restore 10% `INS` and chip +1 bonus Stability.
+* **Domain Resonance (Obsidian Reign):** *Forgeborn Calibration* — Attacks restore 10% `INS` and deal +15% damage to armored or shielded foes (see `combat.md`).
 * **Unique Command — `Redact`:** Strips one active buff from an enemy and converts it into a stack of **Royal Ink**, increasing the damage or Stability break of Cassian's next spell by +30%.
 * **Talent Tree Branches:**
   * 📜 **Spec A: Edict Inquisitor (Arcane Burst & Crowd Control):** High-damage Imperial rune-blasts, silencing enemy casters, locking enemy turn portraits in place, and amplifying **Glyph Synergy Combos**.
