@@ -64,8 +64,16 @@ The signature multi-step weapon crafting questline (unlocking Weapon Tier 4) in 
 _Avoid_: Weapon synthesis, generic anvil upgrade
 
 **World Phase**:
-One of the three global narrative acts (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`) that governs available Zones, regional NPC/faction states, and the transformation of The Grand Archive into The Spire of the First Word alongside the Tri-Realm Coalition War Camp.
+One of the three global narrative acts (`ACT_I_QUARRY_FALL`, `ACT_II_VAULT_RACE`, `ACT_III_UNWRITTEN_COVENANT`) that governs available Zones, regional NPC/faction states, and the transformation of The Grand Archive into The Spire of the First Word alongside the Tri-Realm Coalition War Camp. Always derived from Story Beats, never stored.
 _Avoid_: World state, chapter, era
+
+**Story Beat**:
+One named, permanent moment of story progress (e.g. `shard_fell`, `sura_joined`, `seraphine_betrayal`), drawn from a fixed typed list and recorded once in `WorldMemory`. Beats are the only record of story progress: recruitment, recovered Great Shards, faction changes and one-time scenes are all beats.
+_Avoid_: Story flag, quest flag, switch
+
+**Scene**:
+A scripted sequence (dialogue, fades, battles, party changes) written as an async TypeScript function and started by a Zone trigger. Scenes are the only thing that add Story Beats.
+_Avoid_: Cutscene script, event (when referring to the authored sequence)
 
 ### Combat & Battle Systems
 

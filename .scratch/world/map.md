@@ -24,6 +24,7 @@ Produce a locked, decision-complete specification (`.scratch/world/spec.md`) and
 <!-- the index: one line per closed ticket, enough to judge relevance, then zoom the link for the detail the ticket holds -->
 
 - [Zone Graph Topology, Multi-Map Data Model & Border Transitions](issues/01-zone-graph-and-transitions.md): Per-Zone scrolling grids (`38×28` to `64×48`), 15+ canonical Zones across Frontier/Archive/3 Realm `[Hub ↔ Warzone Approach ↔ Vault]` branches + Sky-Map destinations, step-on `EXIT` strips with 250ms fade, persistent Wardstone states & Waygate/Realm-change mob respawns, and declarative `RealmId`/`BiomePaletteId`/`ZoneAudioProfileId` configs.
+- [Three-Act World Phase State Machine, Story Flags & Dialogue Scripting](issues/04-world-phase-and-narrative-state.md): Story progress is one append-only set of typed Story Beats on `WorldMemory`; World Phase is derived from beats; `recruited`/`presentation` move into beats; Zones change via beat-gated `layers`; Scenes are async TS functions (only writer of beats) started by triggers declared in Zone data; no dialogue choices for now. [ADR-0004](../../docs/adr/0004-story-beats-derive-world-phase.md).
 
 ## Not yet specified
 
